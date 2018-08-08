@@ -1,18 +1,18 @@
-export ANYLINK_IP={{ userPath.ip }}
+export ANYLINK_IP={{ IP }}
 export JEUS_ID=administrator
-export JEUS_PWD={{ userPath.passWord }}
-export DOMAIN_NAME={{ userPath.doaminName }}
+export JEUS_PWD={{ PASSWD }}
+export DOMAIN_NAME={{ DOMAIN }}
 
-{%- for domain in domainList %}
-export MS_NAME{{ loop.index -}}={{ domain.name -}}
+{%- for msName in msList %}
+export MS_NAME{{ loop.index -}}={{ msName -}}
 {%- endfor %}
 export DAS_PORT=9736
 export NM_PORT=7730
 
-{%- for listener in listeners %}
-export MS_PORT{{ loop.index -}}={{ listener.port -}}
+{%- for msPort in portList %}
+export MS_PORT{{ loop.index -}}={{ msPort -}}
 {%- endfor %}
-export ANYLINK_HOME={{ userPath.anylinkHome }}
+export ANYLINK_HOME={{ ANYLINK_HOME }}
 export LOG_HOME=$ANYLINK_HOME/logs
 
 alias nmboot='nohup startNodeManager > $LOG_HOME/nodemanager/nm.log &'
@@ -22,7 +22,7 @@ alias msa='jeusadmin -host $ANYLINK_IP -port $MS_PORT -u $JEUS_ID -p $JEUS_PWD'
 alias dsboot='startDomainAdminServer -domain $DOMAIN_NAME -u $JEUS_ID -p $JEUS_PWD'
 alias dsdown='stopServer -host $ANYLINK_IP:$DAS_PORT -u $JEUS_ID -p $JEUS_PWD'
 
-{%- for domain in domainList %}
+{%- for msBoot in msList %}
 alias msboot{{ loop.index -}}='startManagedServer -dasurl $ANYLINK_IP:$DAS_PORT  -domain $DOMAIN_NAME -server $MS_NAME{{ loop.index -}} -u $JEUS_ID -p $JEUS_PWD'
 alias msdown{{ loop.index -}}='stopServer -host $ANYLINK_IP:$MS_PORT{{ loop.index -}} -u $JEUS_ID -p $JEUS_PWD'
 {%- endfor %}
@@ -38,13 +38,13 @@ alias dlog='cd $LOG_HOME/dis'
 alias jlogd='cd $LOG_HOME/jeus/adminServer'
 alias jtaild='tail -f $LOG_HOME/jeus/adminServer/JeusServer.log'
 
-{%- for domain in domainList %}
+{%- for msBoot in msList %}
 alias jlog{{ loop.index -}}='cd $LOG_HOME/jeus/$MS_NAME{{ loop.index -}}'
 alias jtail{{ loop.index -}}='tail -f $LOG_HOME/jeus/$MS_NAME{{ loop.index -}}/JeusServer.log'
 {%- endfor %}
 alias dtail='tail -f $LOG_HOME/dis/dis_`date +%Y%m%d`.log'
 
-{%- for domain in domainList %}
+{%- for msBoot in msList %}
 alias atail{{ loop.index -}}='tail -f $LOG_HOME/rte/$MS_NAME{{ loop.index -}}/anylink_`date +%Y%m%d`.log'
 {%- endfor %}
 #alias atail='tail -f $LOG_HOME/rte_$CLUSTER_NAME/anylink_`date +%Y%m%d`.log'
