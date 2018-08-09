@@ -17,6 +17,13 @@ public class Domain {
     public String jvm_option;
 	@SerializedName("rotation-dir")
     public String rotation_dir;
+	@SerializedName("use-web-engine")
+    public String use_web_engine;
+	@SerializedName("use-ejb-engine")
+    public String use_ejb_engine;
+	@SerializedName("use-jms-engine")
+    public String use_jms_engine;
+	public String lifeCycle;
 	
 	public class Listeners{
 		@SerializedName("name")

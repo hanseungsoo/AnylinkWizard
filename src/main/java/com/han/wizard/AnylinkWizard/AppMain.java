@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import com.han.config.ConfigJsonParser;
 import com.han.config.generator.FileGenerator;
+import com.han.config.pojo.Clusters;
 import com.han.config.pojo.Domain;
 import com.han.config.pojo.Node;
 import com.han.config.pojo.UserPath;
@@ -25,6 +26,9 @@ public class AppMain {
 	ConfigJsonParser configJsonParser = null;
 	FileGenerator fileGenerator = null;
 	UserPath userPath = null;
+	ArrayList<Node> nodes = null;
+	ArrayList<Domain> domain = null;
+	ArrayList<Clusters> clusters = null;
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		logger.info("CREATE BY Seungsoo_Han");
@@ -52,6 +56,9 @@ public class AppMain {
 		userPath.setHostName(local.getHostName());
 		fileGenerator = new FileGenerator();;
 		configJsonParser = new ConfigJsonParser();
+		nodes = configJsonParser.load("nodes");
+		domain = configJsonParser.load("domain");
+		clusters = configJsonParser.load("clusters");
 	}
 	
 	public void ValidChecker() {
@@ -66,8 +73,7 @@ public class AppMain {
 			fileName = userPath.getAnylinkHome() + File.separator + "domains" + File.separator + "nodes.xml";
 		}
 		logger.info("Nodes 과정 시작");
-		ArrayList<Node> nodes = configJsonParser.load("nodes");
-		fileGenerator.runGenerator(nodes, "nodes", fileName, userPath);
+		fileGenerator.runGenerator(nodes, domain, clusters, "nodes", fileName, userPath);
 	}
 	
 	public void ProfileBoot() {
@@ -82,8 +88,8 @@ public class AppMain {
 			}
 		}
 		logger.info("Profile 과정 시작");
-		ArrayList<Domain> doamin = configJsonParser.load("domain");
-		fileGenerator.runGenerator(doamin, "dasProfile", fileName, userPath);
+		
+		fileGenerator.runGenerator(nodes, domain, clusters, "dasProfile", fileName, userPath);
 	}
 	
 	public void DomainBoot() {
@@ -94,7 +100,7 @@ public class AppMain {
 			fileName = userPath.getAnylinkHome() + File.separator + "domains" + File.separator + userPath.getDoaminName() + File.separator + "config" + File.separator + "domain.xml";
 		}
 		logger.info("Domain 과정 시작");
-		ArrayList<Domain> doamin = configJsonParser.load("domain");
-		fileGenerator.runGenerator(doamin, "domain", fileName, userPath);
+		
+		fileGenerator.runGenerator(nodes, domain, clusters, "domain", fileName, userPath);
 	}
 }

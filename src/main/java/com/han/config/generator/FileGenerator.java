@@ -13,14 +13,16 @@ import org.jtwig.JtwigTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.han.config.pojo.Clusters;
 import com.han.config.pojo.Domain;
 import com.han.config.pojo.Domain.Listeners;
+import com.han.config.pojo.Node;
 import com.han.config.pojo.UserPath;
 
 public class FileGenerator {
 	private static Logger logger = LoggerFactory.getLogger(FileGenerator.class);
 	
-	public <T> void runGenerator(List<T> list, String key, String path, UserPath userPath) {
+	public void runGenerator(List<Node> nodeList,List<Domain> domainList, List<Clusters> clustersList, String key, String path, UserPath userPath) {
 		logger.info( key + " 파일 생성합니다.");
 		logger.info("파일 경로 : " + path);
 		FileOutputStream fos = null;
@@ -32,15 +34,15 @@ public class FileGenerator {
 		if(key.equals("nodes")) {
 			
 			template = JtwigTemplate.classpathTemplate("nodes");
-			model = JtwigModel.newModel().with("nodeList" , list);
+			model = JtwigModel.newModel().with("nodeList" , nodeList);
 			
 		}else if(key.equals("dasProfile")) {
 			List<Listeners> listeners = new ArrayList<Domain.Listeners>();
-			List<Domain> domainList = new ArrayList<Domain>();
-			for(int i = 0; i < list.size(); i++) {
-				Domain item = (Domain) list.get(i);
+			List<Domain> msList = new ArrayList<Domain>();
+			for(int i = 0; i < domainList.size(); i++) {
+				Domain item = (Domain) domainList.get(i);
 				if(item.node_name.equals(userPath.getHostName())) {
-					domainList.add(item);
+					msList.add(item);
 					for(int j = 0; j< item.listeners.size(); j++) {
 						if(item.listeners.get(j).name.equals("BASE")) {
 							listeners.add(item.listeners.get(j));
@@ -50,16 +52,29 @@ public class FileGenerator {
 			}
 			
 			template = JtwigTemplate.classpathTemplate("dasAlias");
-			model = JtwigModel.newModel().with("domainList" , domainList)
+			model = JtwigModel.newModel().with("domainList" , msList)
 										 .with("userPath", userPath)
 										 .with("listeners", listeners);
 		}else if(key.equals("domain")) {
 //			Map adminMap = new HashMap<String, String>();
 //			adminMap.put("aa", "bb");
-			Domain adminServer = (Domain)list.remove(0);
+			Domain adminServer = (Domain)domainList.remove(0);
+			for(int i = 0; i < domainList.size(); i++) {
+				Domain item = (Domain) domainList.get(i);
+				for(int j = 0; j < clustersList.size(); j++) {
+					Clusters cluster = (Clusters) clustersList.get(j);
+					if(cluster.servers.contains(item.name)) {
+						item.lifeCycle = "false";
+					}else {
+						item.lifeCycle = "true";
+					}
+				}
+			}
+			
 			
 			template = JtwigTemplate.classpathTemplate("server");
-			model = JtwigModel.newModel().with("adminServer" , adminServer);
+			model = JtwigModel.newModel().with("adminServer" , adminServer)
+										 .with("msServers", domainList);
 		}
 		
 		try {

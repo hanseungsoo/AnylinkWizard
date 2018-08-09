@@ -15,6 +15,7 @@ import com.google.gson.JsonIOException;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
+import com.han.config.pojo.Clusters;
 import com.han.config.pojo.Domain;
 import com.han.config.pojo.Node;
 import com.han.wizard.AnylinkWizard.AppMain;
@@ -62,6 +63,8 @@ public class ConfigJsonParser {
             	object = (T) new Gson().fromJson(json, Node.class);
             }else if(key.equals("domain")){
             	object = (T) new Gson().fromJson(json, Domain.class);
+            }else if(key.equals("clusters")) {
+            	object = (T) new Gson().fromJson(json, Clusters.class);
             }
             list.add(object);
         }
