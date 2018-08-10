@@ -12,7 +12,7 @@
                         <xml-file-repository>
                             <config-file>
 <filename>accounts.xml</filename>
-<filepath>/home/anylink/anylink7/domains/anylink_domain/config/security/</filepath>
+<filepath>{{ userPath.anylinkHome }}/domain/{{ userPath.domainName }}config/security/</filepath>
                             </config-file>
                         </xml-file-repository>
                     </repository-service>
@@ -25,7 +25,7 @@
                         <xml-file-repository>
                             <config-file>
 <filename>policies.xml</filename>
-<filepath>/home/anylink/anylink7/domains/anylink_domain/config/security/</filepath>
+<filepath>{{ userPath.anylinkHome }}/domain/{{ userPath.domainName }}config/security/</filepath>
                             </config-file>
                         </xml-file-repository>
                     </repository-service>
@@ -56,12 +56,15 @@
 	<servers>
 	{% include "classpath:/server" ignore missing %}
 	</servers>
+	{%- if (length(clustersList) > 0) %}
     <clusters>
+    {%- for cluster in clustersList %}
         <cluster>
-            <name>CLS_ANYLINK</name>
+            <name>{{ cluster.name }}</name>
             <servers>
-                <server-name>cluster_server1</server-name>
-                <server-name>cluster_server2</server-name>
+                {%- for server in cluster.servers %}
+                <server-name>{{ server }}</server-name>
+                {%- endfor %}
             </servers>
             <session-router-config>
                 <reserved-thread-num>0</reserved-thread-num>
@@ -79,7 +82,10 @@
             <use-MEJB>false</use-MEJB>
             <class-ftp>false</class-ftp>
         </cluster>
+    {%- endfor %}
     </clusters>
+    {%- endif %}
+    {%- if (length(clustersList) > 0) %}
     <lifecycle-invocation>
         <class-name>com.tmax.anylink.runtime.RTELifecycleListener</class-name>
         <invocation id="0">
@@ -113,10 +119,11 @@
             <invocation-type>AFTER_UNDEPLOY</invocation-type>
         </invocation>
     </lifecycle-invocation>
+    {%- endif %}
     <deployed-applications>
         <deployed-application>
             <id>anylink-admin</id>
-            <path>/home/anylink/anylink7/domains/anylink_domain/.applications/anylink-admin/anylink-admin.war</path>
+            <path>{{ userPath.anylinkHome }}/domain/{{ userPath.domainName }}.applications/anylink-admin/anylink-admin.war</path>
             <type>WAR</type>
             <targets>
                 <server>
@@ -132,12 +139,22 @@
         </deployed-application>
         <deployed-application>
             <id>anylink-http-servlet</id>
-            <path>/home/anylink/anylink7/domains/anylink_domain/.applications/anylink-http-servlet/AnyLink_Http_Servlet.war</path>
+            <path>{{ userPath.anylinkHome }}/domain/{{ userPath.domainName }}.applications/anylink-http-servlet/AnyLink_Http_Servlet.war</path>
             <type>WAR</type>
             <targets>
+            	{%- if (length(clustersList) > 0) %}
                 <cluster>
-                    <name>CLS_ANYLINK</name>
+                	{%- for cluster in clustersList %}
+                    <name>{{ cluster.name }}</name>
+                    {%- endfor %}
                 </cluster>
+                {%- elseif (length(msServers) > 0) %}
+                <server>
+                	{%- for msServer in msServers %}
+                    <name>{{ msServer.name }}</name>
+                    {%- endfor %}
+                </server>
+                {%- endif %}
             </targets>
             <options>
                 <classloading>ISOLATED</classloading>

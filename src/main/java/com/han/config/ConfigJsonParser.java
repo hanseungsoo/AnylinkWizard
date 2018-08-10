@@ -24,12 +24,8 @@ public class ConfigJsonParser {
 	private static Logger logger = LoggerFactory.getLogger(ConfigJsonParser.class);
 	private String propertyName;
 	
-	public ConfigJsonParser() {
-		if(AppMain.dev) {
-			this.propertyName = "C:\\Users\\Han\\Desktop\\workspace\\config\\setting.json";
-		}else {
-			this.propertyName = System.getProperty("setting.config.json");
-		}
+	public ConfigJsonParser(String propertyName) {
+		this.propertyName = propertyName;
 	}
 	@SuppressWarnings("unchecked")
 	public <T> ArrayList<T> load(String key) {

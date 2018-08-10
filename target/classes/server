@@ -21,7 +21,7 @@
         <jvm-option>{{ adminServer.jvm_option }}</jvm-option>
     </jvm-config>
     <user-interceptor>
-        <boot-classloader-append-class-path>/home/anylink/anylink7/lib/anylink/anylink-system-logger.jar:/home/anylink/anylink7/lib/anylink/anylink-moxy.jar</boot-classloader-append-class-path>
+        <boot-classloader-append-class-path>{{ userPath.anylinkHome }}/lib/anylink/anylink-system-logger.jar:{{ userPath.anylinkHome }}/lib/anylink/anylink-moxy.jar</boot-classloader-append-class-path>
     </user-interceptor>
     <system-logging>
         <name>jeus</name>
@@ -55,7 +55,7 @@
         <commit-timeout>240000</commit-timeout>
         <recovery-timeout>120000</recovery-timeout>
         <uncompleted-timeout>86400000</uncompleted-timeout>
-        <tx-log-dir>/home/anylink/anylink7/.workspace/tmlog</tx-log-dir>
+        <tx-log-dir>{{ userPath.anylinkHome }}/.workspace/tmlog</tx-log-dir>
         <automatic-recovery>false</automatic-recovery>
     </tm-config>
     <naming-server>
@@ -84,9 +84,9 @@
     </system-thread-pool>
     <engine-init-on-startup>true</engine-init-on-startup>
     <use-web-engine>{{ adminServer.use_web_engine }}</use-web-engine>
-    <use-ejb-engine>{{ adminServer.use-ejb-engine }}</use-ejb-engine>
-    <use-jms-engine>{{ adminServer.use-jms-engine }}</use-jms-engine>
-	{% if (adminServer.use_web_engine == 'true') %}
+    <use-ejb-engine>{{ adminServer.use_ejb_engine }}</use-ejb-engine>
+    <use-jms-engine>{{ adminServer.use_jms_engine }}</use-jms-engine>
+	{%- if (adminServer.use_web_engine == 'true') %}
     <web-engine>
         <jsp-engine>
             <java-compiler>java6</java-compiler>
@@ -180,8 +180,8 @@
             <deny-null-character>true</deny-null-character>
         </blocked-url-patterns>
     </web-engine>
-	{% endif %}
-	{% if (adminServer.use_ejb_engine == 'true') %}
+	{%- endif %}
+	{%- if (adminServer.use_ejb_engine == 'true') %}
     <ejb-engine>
         <resolution>300000</resolution>
         <enable-user-notify>false</enable-user-notify>
@@ -206,8 +206,8 @@
         </async-service>
         <use-dynamic-proxy-for-ejb2>true</use-dynamic-proxy-for-ejb2>
     </ejb-engine>
-	{% endif %}
-	{% if (adminServer.use_jms_engine == 'true') %}
+	{%- endif %}
+	{%- if (adminServer.use_jms_engine == 'true') %}
     <jms-engine>
         <service-config>
             <name>internal</name>
@@ -244,7 +244,7 @@
             <reconnect-interval>5000</reconnect-interval>
         </connection-factory>
     </jms-engine>
-	{% endif %}
+	{%- endif %}
     <use-MEJB>false</use-MEJB>
     <class-ftp>true</class-ftp>
     <lifecycle-invocation>
@@ -256,7 +256,7 @@
             <invocation-type>BOOT</invocation-type>
         </invocation>
     </lifecycle-invocation>
-	{% if (adminServer.use_jms_engine == 'true') %}
+	{%- if (adminServer.use_jms_engine == 'true') %}
     <jms-resource>
         <destination>
             <type>queue</type>
@@ -287,7 +287,7 @@
             <expiration-policy>Delete</expiration-policy>
         </destination>
     </jms-resource>
-	{% endif %}
+	{%- endif %}
     <data-sources>
         <data-source>LogAdapter_DataSource</data-source>
     </data-sources>
@@ -302,7 +302,7 @@
         <listener>
             <name>{{ mslistener.name }}</name>
             <listen-port>{{ mslistener.port }}</listen-port>
-			<listen-address>{{ mslistener.address }}</listen-address>
+            <listen-address>{{ mslistener.address }}</listen-address>
             <use-nio>true</use-nio>
             <selectors>1</selectors>
             <use-dual-selector>false</use-dual-selector>
@@ -317,7 +317,7 @@
         <jvm-option>{{ msServer.jvm_option }}</jvm-option>
     </jvm-config>
     <user-interceptor>
-        <boot-classloader-append-class-path>/home/anylink/anylink7/lib/anylink/anylink-system-logger.jar:/home/anylink/anylink7/lib/anylink/anylink-moxy.jar</boot-classloader-append-class-path>
+        <boot-classloader-append-class-path>{{ userPath.anylinkHome }}/lib/anylink/anylink-system-logger.jar:{{ userPath.anylinkHome }}/lib/anylink/anylink-moxy.jar</boot-classloader-append-class-path>
     </user-interceptor>
     <system-logging>
         <name>jeus</name>
@@ -351,7 +351,7 @@
         <commit-timeout>240000</commit-timeout>
         <recovery-timeout>120000</recovery-timeout>
         <uncompleted-timeout>86400000</uncompleted-timeout>
-        <tx-log-dir>/home/anylink/anylink7/.workspace/tmlog</tx-log-dir>
+        <tx-log-dir>{{ userPath.anylinkHome }}/.workspace/tmlog</tx-log-dir>
         <automatic-recovery>false</automatic-recovery>
     </tm-config>
     <naming-server>
@@ -381,9 +381,9 @@
     <data-source-remote-lookup>false</data-source-remote-lookup>
     <engine-init-on-startup>true</engine-init-on-startup>
     <use-web-engine>{{ msServer.use_web_engine }}</use-web-engine>
-    <use-ejb-engine>{{ msServer.use-ejb-engine }}</use-ejb-engine>
-    <use-jms-engine>{{ msServer.use-jms-engine }}</use-jms-engine>
-	{% if (msServer.use_web_engine == 'true') %}
+    <use-ejb-engine>{{ msServer.use_ejb_engine }}</use-ejb-engine>
+    <use-jms-engine>{{ msServer.use_jms_engine }}</use-jms-engine>
+	{%- if (msServer.use_web_engine == 'true') %}
     <web-engine>
         <jsp-engine>
             <java-compiler>java6</java-compiler>
@@ -477,8 +477,8 @@
             <deny-null-character>true</deny-null-character>
         </blocked-url-patterns>
     </web-engine>
-	{% endif %}
-	{% if (msServer.use_ejb_engine == 'true') %}
+	{%- endif %}
+	{%- if (msServer.use_ejb_engine == 'true') %}
     <ejb-engine>
         <resolution>300000</resolution>
         <enable-user-notify>false</enable-user-notify>
@@ -503,8 +503,8 @@
         </async-service>
         <use-dynamic-proxy-for-ejb2>true</use-dynamic-proxy-for-ejb2>
     </ejb-engine>
-	{% endif %}
-	{% if (msServer.use_jms_engine == 'true') %}
+	{%- endif %}
+	{%- if (msServer.use_jms_engine == 'true') %}
     <jms-engine>
         <service-config>
             <name>internal</name>
@@ -541,10 +541,10 @@
             <reconnect-interval>5000</reconnect-interval>
         </connection-factory>
     </jms-engine>
-	{% endif %}
+	{%- endif %}
     <use-MEJB>false</use-MEJB>
     <class-ftp>true</class-ftp>
-	{% if (msServer.lifeCycle == 'true') %}
+	{%- if (msServer.lifeCycle == 'true') %}
     <lifecycle-invocation>
         <class-name>com.tmax.anylink.runtime.RTELifecycleListener</class-name>
         <invocation id="0">
@@ -578,8 +578,8 @@
             <invocation-type>AFTER_UNDEPLOY</invocation-type>
         </invocation>
     </lifecycle-invocation>
-	{% endif %}
-	{% if (msServer.use_ejb_engine == 'true') %}
+	{%- endif %}
+	{%- if (msServer.use_ejb_engine == 'true') %}
     <jms-resource>
         <destination>
             <type>queue</type>
@@ -610,7 +610,7 @@
             <expiration-policy>Delete</expiration-policy>
         </destination>
     </jms-resource>
-	{% endif %}
+	{%- endif %}
     <data-sources>
         <data-source>LogAdapter_DataSource</data-source>
     </data-sources>

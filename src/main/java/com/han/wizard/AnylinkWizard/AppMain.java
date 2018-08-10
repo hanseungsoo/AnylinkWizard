@@ -29,6 +29,8 @@ public class AppMain {
 	ArrayList<Node> nodes = null;
 	ArrayList<Domain> domain = null;
 	ArrayList<Clusters> clusters = null;
+	String propertyName = null;
+	String devPath = "/home/tmax/wizard/fin";
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		logger.info("CREATE BY Seungsoo_Han");
@@ -55,7 +57,12 @@ public class AppMain {
 		userPath.setIp(local.getHostAddress());
 		userPath.setHostName(local.getHostName());
 		fileGenerator = new FileGenerator();;
-		configJsonParser = new ConfigJsonParser();
+		if(AppMain.dev) {
+			this.propertyName = "/home/tmax/wizard/setting.json";
+		}else {
+			this.propertyName = System.getProperty("setting.config.json");
+		}
+		configJsonParser = new ConfigJsonParser(propertyName);
 		nodes = configJsonParser.load("nodes");
 		domain = configJsonParser.load("domain");
 		clusters = configJsonParser.load("clusters");
@@ -68,7 +75,7 @@ public class AppMain {
 	public void NodesBoot() {
 		String fileName = null;
 		if(AppMain.dev) {
-			fileName = "C:\\Users\\Han\\Desktop\\소스\\nodes_test.xml";
+			fileName = "devPath/nodes_test.xml";
 		}else {
 			fileName = userPath.getAnylinkHome() + File.separator + "domains" + File.separator + "nodes.xml";
 		}
@@ -79,7 +86,7 @@ public class AppMain {
 	public void ProfileBoot() {
 		String fileName = null;
 		if(AppMain.dev) {
-			fileName = "C:\\Users\\Han\\Desktop\\소스\\profile";
+			fileName = "devPath/profile";
 		}else {
 			fileName = userHome + File.separator + ".bash_profile";
 			File tmpFile = new File(fileName);
@@ -95,7 +102,7 @@ public class AppMain {
 	public void DomainBoot() {
 		String fileName = null;
 		if(AppMain.dev) {
-			fileName = "C:\\Users\\Han\\Desktop\\소스\\domain_test.xml";
+			fileName = "devPath/domain_test.xml";
 		}else {
 			fileName = userPath.getAnylinkHome() + File.separator + "domains" + File.separator + userPath.getDoaminName() + File.separator + "config" + File.separator + "domain.xml";
 		}

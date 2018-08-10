@@ -72,11 +72,12 @@ public class FileGenerator {
 			}
 			
 			
-			template = JtwigTemplate.classpathTemplate("server");
+			template = JtwigTemplate.classpathTemplate("domain");
 			model = JtwigModel.newModel().with("adminServer" , adminServer)
-										 .with("msServers", domainList);
+										 .with("msServers", domainList)
+										 .with("userPath", userPath)
+										 .with("clustersList", clustersList);
 		}
-		
 		try {
 			fos = new FileOutputStream(file);
 		} catch (FileNotFoundException e) {

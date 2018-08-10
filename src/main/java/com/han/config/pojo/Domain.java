@@ -18,12 +18,12 @@ public class Domain {
 	@SerializedName("rotation-dir")
     public String rotation_dir;
 	@SerializedName("use-web-engine")
-    public String use_web_engine;
+    public String use_web_engine = "false";
 	@SerializedName("use-ejb-engine")
-    public String use_ejb_engine;
+    public String use_ejb_engine = "false";
 	@SerializedName("use-jms-engine")
-    public String use_jms_engine;
-	public String lifeCycle;
+    public String use_jms_engine = "false";
+	public String lifeCycle = "false";
 	
 	public class Listeners{
 		@SerializedName("name")
