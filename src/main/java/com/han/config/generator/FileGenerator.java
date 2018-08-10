@@ -77,7 +77,12 @@ public class FileGenerator {
 										 .with("msServers", domainList)
 										 .with("userPath", userPath)
 										 .with("clustersList", clustersList);
+		}else if(key.equals("bizConfig")) {
+			
 		}
+		
+		
+		
 		try {
 			fos = new FileOutputStream(file);
 		} catch (FileNotFoundException e) {

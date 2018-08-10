@@ -7,7 +7,7 @@
 </ns0:systemLogging>
 <ns0:nodeList>
       <ns0:node>
-         <ns0:name>server1</ns0:name>
+         <ns0:name>{{ msName }}</ns0:name>
       </ns0:node>
    </ns0:nodeList>
 </ns0:bizSystemInfo>

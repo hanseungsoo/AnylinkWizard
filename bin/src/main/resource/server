@@ -1,5 +1,6 @@
 <server>
     <name>{{ adminServer.name }}</name>
+    <log-home>{{ adminServer.log_home }} </log-home>
     <listeners>
         <base>BASE</base>
         {%- for listener in adminServer.listeners %}
@@ -295,6 +296,7 @@
 {%- for msServer in msServers %}
 <server>
     <name>{{ msServer.name }}</name>
+    <log-home>{{ msServer.log_home }} </log-home>
     <node-name>{{ msServer.node_name }}</node-name>
     <listeners>
         <base>BASE</base>

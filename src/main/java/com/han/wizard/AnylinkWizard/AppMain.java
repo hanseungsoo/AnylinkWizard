@@ -17,6 +17,7 @@ import com.han.config.pojo.Clusters;
 import com.han.config.pojo.Domain;
 import com.han.config.pojo.Node;
 import com.han.config.pojo.UserPath;
+import com.han.config.util.ConfigChecker;
 
 
 public class AppMain {
@@ -36,6 +37,7 @@ public class AppMain {
 		logger.info("CREATE BY Seungsoo_Han");
 		AppMain appMain = new AppMain();
 		appMain.InitConfig();
+		appMain.ValidChecker();
 		appMain.NodesBoot();
 		appMain.ProfileBoot();
 		appMain.DomainBoot();
@@ -69,6 +71,14 @@ public class AppMain {
 	}
 	
 	public void ValidChecker() {
+		logger.info("설정파일 검증 시작");
+		ConfigChecker configChecker = new ConfigChecker(domain, clusters, nodes);
+		if(configChecker.node() && configChecker.domian() && configChecker.cluster()) {
+			logger.info("설정파일 검증 완료");
+		}else {
+			logger.info("설정파일 검증 실패");
+			System.exit(1);
+		}
 		
 	}
 	
@@ -109,5 +119,9 @@ public class AppMain {
 		logger.info("Domain 과정 시작");
 		
 		fileGenerator.runGenerator(nodes, domain, clusters, "domain", fileName, userPath);
+	}
+	
+	public void BizSystemBoot() {
+		
 	}
 }

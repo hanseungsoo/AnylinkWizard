@@ -48,7 +48,7 @@
 	<dependency>
 	    <groupId>ch.qos.logback</groupId>
 	    <artifactId>logback-classic</artifactId>
-	    <version>1.2.3</version> <!--버전은 상황에 따라 -->
+	    <version>1.2.3</version> <!--踰꾩쟾�� �긽�솴�뿉 �뵲�씪 -->
 	</dependency>
 	<!-- https://mvnrepository.com/artifact/com.googlecode.json-simple/json-simple -->
 <!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
