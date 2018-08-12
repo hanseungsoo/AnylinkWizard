@@ -12,7 +12,7 @@
                         <xml-file-repository>
                             <config-file>
 <filename>accounts.xml</filename>
-<filepath>{{ userPath.anylinkHome }}/domain/{{ userPath.domainName }}config/security/</filepath>
+<filepath>{{ userPath.getAnylinkHome }}/domain/{{ userPath.getDoaminName }}config/security/</filepath>
                             </config-file>
                         </xml-file-repository>
                     </repository-service>
@@ -25,7 +25,7 @@
                         <xml-file-repository>
                             <config-file>
 <filename>policies.xml</filename>
-<filepath>{{ userPath.anylinkHome }}/domain/{{ userPath.domainName }}config/security/</filepath>
+<filepath>{{ userPath.getAnylinkHome }}/domain/{{ userPath.getDoaminName }}config/security/</filepath>
                             </config-file>
                         </xml-file-repository>
                     </repository-service>
@@ -60,10 +60,10 @@
     <clusters>
     {%- for cluster in clustersList %}
         <cluster>
-            <name>{{ cluster.name }}</name>
+            <name>{{ cluster.getName }}</name>
             <servers>
-                {%- for server in cluster.servers %}
-                <server-name>{{ server }}</server-name>
+                {%- for serverName in cluster.getServers %}
+                <server-name>{{ serverName }}</server-name>
                 {%- endfor %}
             </servers>
             <session-router-config>
@@ -123,7 +123,7 @@
     <deployed-applications>
         <deployed-application>
             <id>anylink-admin</id>
-            <path>{{ userPath.anylinkHome }}/domain/{{ userPath.domainName }}.applications/anylink-admin/anylink-admin.war</path>
+            <path>{{ userPath.getAnylinkHome }}/domain/{{ userPath.getDoaminName }}.applications/anylink-admin/anylink-admin.war</path>
             <type>WAR</type>
             <targets>
                 <server>
@@ -139,19 +139,20 @@
         </deployed-application>
         <deployed-application>
             <id>anylink-http-servlet</id>
-            <path>{{ userPath.anylinkHome }}/domain/{{ userPath.domainName }}.applications/anylink-http-servlet/AnyLink_Http_Servlet.war</path>
+            <path>{{ userPath.getAnylinkHome }}/domain/{{ userPath.getDoaminName }}.applications/anylink-http-servlet/AnyLink_Http_Servlet.war</path>
             <type>WAR</type>
             <targets>
             	{%- if (length(clustersList) > 0) %}
                 <cluster>
                 	{%- for cluster in clustersList %}
-                    <name>{{ cluster.name }}</name>
+                    <name>{{ cluster.getName }}</name>
                     {%- endfor %}
                 </cluster>
-                {%- elseif (length(msServers) > 0) %}
+                {%- endif %}
+                {%- if (length(msServers) > 0) %}
                 <server>
                 	{%- for msServer in msServers %}
-                    <name>{{ msServer.name }}</name>
+                    <name>{{ msServer.getName }}</name>
                     {%- endfor %}
                 </server>
                 {%- endif %}
@@ -167,16 +168,16 @@
     <resources>
         <data-source>
             <database>
-                <data-source-id>LogAdapter_DataSource</data-source-id>
-                <export-name>LogAdapter_DataSource</export-name>
-                <data-source-class-name>com.tmax.tibero.jdbc.ext.TbConnectionPoolDataSource</data-source-class-name>
-                <data-source-type>ConnectionPoolDataSource</data-source-type>
-                <vendor>tibero</vendor>
-                <server-name>192.168.56.102</server-name>
-                <port-number>8629</port-number>
-                <database-name>tibero</database-name>
-                <user>anylink</user>
-                <password>anylink</password>
+                <data-source-id>{{ dataSource.getData_source_id }}</data-source-id>
+                <export-name>{{ dataSource.getData_source_id }}</export-name>
+                <data-source-class-name>{{ dataSource.getData_source_class_name }}</data-source-class-name>
+                <data-source-type>{{ dataSource.getData_source_type }}</data-source-type>
+                <vendor>{{ dataSource.getVendor }}</vendor>
+                <server-name>{{ dataSource.getServer_name }}</server-name>
+                <port-number>{{ dataSource.getPort_number }}</port-number>
+                <database-name>{{ dataSource.getDatabase_name }}</database-name>
+                <user>{{ dataSource.getUser }}</user>
+                <password>{{ dataSource.getPassword }}</password>
                 <login-timeout>0</login-timeout>
                 <auto-commit>DRIVER</auto-commit>
                 <stmt-query-timeout>0</stmt-query-timeout>

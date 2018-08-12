@@ -16,6 +16,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import com.han.config.pojo.Clusters;
+import com.han.config.pojo.DataSource;
 import com.han.config.pojo.Domain;
 import com.han.config.pojo.Node;
 import com.han.wizard.AnylinkWizard.AppMain;
@@ -32,9 +33,9 @@ public class ConfigJsonParser {
 		logger.info("설정파일을 로딩합니다.");
 		logger.info("파일 경로 : " + propertyName);
 		JsonParser jsonParser = new JsonParser();
-		JsonObject nodesObject = null;
+		JsonObject configObject = null;
 		try {
-			nodesObject = (JsonObject)jsonParser.parse(new FileReader(propertyName));
+			configObject = (JsonObject)jsonParser.parse(new FileReader(propertyName));
 		} catch (JsonIOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -49,21 +50,33 @@ public class ConfigJsonParser {
 			System.exit(1);
 		}
 		logger.info(key + " 설정 파싱합니다.");
-		JsonArray nodesArray = (JsonArray)nodesObject.get(key).getAsJsonArray();
 		ArrayList<T> list = new ArrayList<T>();
-		Iterator<JsonElement> iterator = nodesArray.iterator();
-		while(iterator.hasNext()){
-            JsonElement json = (JsonElement)iterator.next();
-            T object = null;
-            if(key.equals("nodes")) {
-            	object = (T) new Gson().fromJson(json, Node.class);
-            }else if(key.equals("domain")){
-            	object = (T) new Gson().fromJson(json, Domain.class);
-            }else if(key.equals("clusters")) {
-            	object = (T) new Gson().fromJson(json, Clusters.class);
-            }
-            list.add(object);
-        }
+		if(!key.equals("log_home")) {
+			JsonArray configArray = (JsonArray)configObject.get(key).getAsJsonArray();
+			Iterator<JsonElement> iterator = configArray.iterator();
+			while(iterator.hasNext()){
+	            JsonElement json = (JsonElement)iterator.next();
+	            
+	            T object = null;
+	            if(key.equals("nodes")) {
+	            	object = (T) new Gson().fromJson(json, Node.class);
+	            }else if(key.equals("domain")){
+	            	object = (T) new Gson().fromJson(json, Domain.class);
+	            	Domain tmpDomain = (Domain) object;
+	            	String logHome = (String)configObject.get("log_home").getAsString();
+	            	tmpDomain.changeLogHome(logHome);
+	            }else if(key.equals("clusters")) {
+	            	object = (T) new Gson().fromJson(json, Clusters.class);
+	            }else if(key.equals("dataSource")) {
+	            	object = (T) new Gson().fromJson(json, DataSource.class);
+	            }
+	            list.add(object);
+	        }
+		}else {
+			String logHome = (String)configObject.get("log_home").getAsString();
+			list.add((T)logHome);
+		}
+		
 		return list;
 	}
 }

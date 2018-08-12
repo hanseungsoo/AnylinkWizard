@@ -2,11 +2,11 @@
 <nodes xmlns="http://www.tmaxsoft.com/xml/ns/jeus" version="7.0">
 {%- for node in nodeList %}
     <node>
-        <name>{{ node.name }}</name>
-        <host>{{ node.host }}</host>
+        <name>{{ node.getName }}</name>
+        <host>{{ node.getHost }}</host>
         <java>
-            <port>{{ node.port }}</port>
-            <use-ssl>{{ node.use_ssl }}</use-ssl>
+            <port>{{ node.getPort }}</port>
+            <use-ssl>{{ node.getUse_ssl }}</use-ssl>
         </java>
     </node>
 {%- endfor %}

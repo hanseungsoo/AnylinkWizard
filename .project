@@ -34,4 +34,11 @@
 		<nature>org.eclipse.wst.common.project.facet.core.nature</nature>
 		<nature>org.eclipse.wst.jsdt.core.jsNature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>resource</name>
+			<type>2</type>
+			<location>C:/Users/Seungsoo_Han/Desktop/Code/workspace/AnylinkWizard/src/main/resource</location>
+		</link>
+	</linkedResources>
 </projectDescription>

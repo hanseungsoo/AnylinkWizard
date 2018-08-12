@@ -6,12 +6,36 @@ import com.google.gson.annotations.SerializedName;
 
 public class Node{
 	@SerializedName("name")
-    public String name;
+    private String name;
 	@SerializedName("host")
-    public String host;
+	private String host;
 	@SerializedName("port")
-    public String port;
+	private String port;
 	@SerializedName("use-ssl")
-    public String use_ssl;
+	private String use_ssl;
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	public String getHost() {
+		return host;
+	}
+	public void setHost(String host) {
+		this.host = host;
+	}
+	public String getPort() {
+		return port;
+	}
+	public void setPort(String port) {
+		this.port = port;
+	}
+	public String getUse_ssl() {
+		return use_ssl;
+	}
+	public void setUse_ssl(String use_ssl) {
+		this.use_ssl = use_ssl;
+	}
 	
 }

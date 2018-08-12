@@ -1,13 +1,15 @@
 <server>
-    <name>{{ adminServer.name }}</name>
-    <log-home>{{ adminServer.log_home }} </log-home>
+    <name>{{ adminServer.getName }}</name>
+    {%- if adminServer.getLog_home != "" %}
+    <log-home>{{ adminServer.getLog_home }} </log-home>
+    {%- endif %}
     <listeners>
         <base>BASE</base>
-        {%- for listener in adminServer.listeners %}
+        {%- for adminServerListener in adminServer.getListeners %}
         <listener>
-            <name>{{ listener.name }}</name>
-            <listen-port>{{ listener.port }}</listen-port>
-            <listen-address>{{ listener.address }}</listen-address>
+            <name>{{ adminServerListener.getName }}</name>
+            <listen-port>{{ adminServerListener.getPort }}</listen-port>
+            <listen-address>{{ adminServerListener.getAddress }}</listen-address>
             <use-nio>true</use-nio>
             <selectors>1</selectors>
             <use-dual-selector>false</use-dual-selector>
@@ -19,10 +21,10 @@
         {%- endfor %}
     </listeners>
     <jvm-config>
-        <jvm-option>{{ adminServer.jvm_option }}</jvm-option>
+        <jvm-option>{{ adminServer.getJvm_option }}</jvm-option>
     </jvm-config>
     <user-interceptor>
-        <boot-classloader-append-class-path>{{ userPath.anylinkHome }}/lib/anylink/anylink-system-logger.jar:{{ userPath.anylinkHome }}/lib/anylink/anylink-moxy.jar</boot-classloader-append-class-path>
+        <boot-classloader-append-class-path>{{ userPath.getAnylinkHome }}/lib/anylink/anylink-system-logger.jar:{{ userPath.getAnylinkHome }}/lib/anylink/anylink-moxy.jar</boot-classloader-append-class-path>
     </user-interceptor>
     <system-logging>
         <name>jeus</name>
@@ -35,7 +37,7 @@
                 <level>FINEST</level>
                 <file-name>JeusServer.log</file-name>
                 <enable-rotation>true</enable-rotation>
-                <rotation-dir>{{ adminServer.rotation_dir }}</rotation-dir>
+                <rotation-dir>{{ adminServer.getRotation_dir }}</rotation-dir>
                 <valid-day>1</valid-day>
                 <buffer-size>1024</buffer-size>
                 <append>true</append>
@@ -56,7 +58,7 @@
         <commit-timeout>240000</commit-timeout>
         <recovery-timeout>120000</recovery-timeout>
         <uncompleted-timeout>86400000</uncompleted-timeout>
-        <tx-log-dir>{{ userPath.anylinkHome }}/.workspace/tmlog</tx-log-dir>
+        <tx-log-dir>{{ userPath.getAnylinkHome }}/.workspace/tmlog</tx-log-dir>
         <automatic-recovery>false</automatic-recovery>
     </tm-config>
     <naming-server>
@@ -84,10 +86,10 @@
         </stuck-thread-handling>
     </system-thread-pool>
     <engine-init-on-startup>true</engine-init-on-startup>
-    <use-web-engine>{{ adminServer.use_web_engine }}</use-web-engine>
-    <use-ejb-engine>{{ adminServer.use_ejb_engine }}</use-ejb-engine>
-    <use-jms-engine>{{ adminServer.use_jms_engine }}</use-jms-engine>
-	{%- if (adminServer.use_web_engine == 'true') %}
+    <use-web-engine>{{ adminServer.getUse_web_engine }}</use-web-engine>
+    <use-ejb-engine>{{ adminServer.getUse_ejb_engine }}</use-ejb-engine>
+    <use-jms-engine>{{ adminServer.getUse_jms_engine }}</use-jms-engine>
+	{%- if (adminServer.getUse_web_engine == 'true') %}
     <web-engine>
         <jsp-engine>
             <java-compiler>java6</java-compiler>
@@ -182,7 +184,7 @@
         </blocked-url-patterns>
     </web-engine>
 	{%- endif %}
-	{%- if (adminServer.use_ejb_engine == 'true') %}
+	{%- if (adminServer.getUse_ejb_engine == 'true') %}
     <ejb-engine>
         <resolution>300000</resolution>
         <enable-user-notify>false</enable-user-notify>
@@ -208,7 +210,7 @@
         <use-dynamic-proxy-for-ejb2>true</use-dynamic-proxy-for-ejb2>
     </ejb-engine>
 	{%- endif %}
-	{%- if (adminServer.use_jms_engine == 'true') %}
+	{%- if (adminServer.getUse_jms_engine == 'true') %}
     <jms-engine>
         <service-config>
             <name>internal</name>
@@ -257,7 +259,7 @@
             <invocation-type>BOOT</invocation-type>
         </invocation>
     </lifecycle-invocation>
-	{%- if (adminServer.use_jms_engine == 'true') %}
+	{%- if (adminServer.getUse_jms_engine == 'true') %}
     <jms-resource>
         <destination>
             <type>queue</type>
@@ -290,21 +292,23 @@
     </jms-resource>
 	{%- endif %}
     <data-sources>
-        <data-source>LogAdapter_DataSource</data-source>
+        <data-source>{{ dataSource.getData_source_id }}</data-source>
     </data-sources>
 </server>
-{%- for msServer in msServers %}
+{%- for msServer in msServerList %}
 <server>
-    <name>{{ msServer.name }}</name>
-    <log-home>{{ msServer.log_home }} </log-home>
-    <node-name>{{ msServer.node_name }}</node-name>
+    <name>{{ msServer.getName }}</name>
+    {%- if msServer.getLog_home != "" %}
+    <log-home>{{ msServer.getLog_home }} </log-home>
+    {%- endif %}
+    <node-name>{{ msServer.getNode_name }}</node-name>
     <listeners>
         <base>BASE</base>
-        {%- for mslistener in msServer.listeners %}
+        {%- for msServerListener in msServer.getListeners %}
         <listener>
-            <name>{{ mslistener.name }}</name>
-            <listen-port>{{ mslistener.port }}</listen-port>
-            <listen-address>{{ mslistener.address }}</listen-address>
+            <name>{{ mslistener.getName }}</name>
+            <listen-port>{{ mslistener.getPort }}</listen-port>
+            <listen-address>{{ mslistener.getAddress }}</listen-address>
             <use-nio>true</use-nio>
             <selectors>1</selectors>
             <use-dual-selector>false</use-dual-selector>
@@ -316,10 +320,10 @@
         {%- endfor %}
     </listeners>
     <jvm-config>
-        <jvm-option>{{ msServer.jvm_option }}</jvm-option>
+        <jvm-option>{{ msServer.getJvm_option }}</jvm-option>
     </jvm-config>
     <user-interceptor>
-        <boot-classloader-append-class-path>{{ userPath.anylinkHome }}/lib/anylink/anylink-system-logger.jar:{{ userPath.anylinkHome }}/lib/anylink/anylink-moxy.jar</boot-classloader-append-class-path>
+        <boot-classloader-append-class-path>{{ userPath.getAnylinkHome }}/lib/anylink/anylink-system-logger.jar:{{ userPath.getAnylinkHome }}/lib/anylink/anylink-moxy.jar</boot-classloader-append-class-path>
     </user-interceptor>
     <system-logging>
         <name>jeus</name>
@@ -332,7 +336,7 @@
                 <level>FINEST</level>
                 <file-name>JeusServer.log</file-name>
                 <enable-rotation>true</enable-rotation>
-                <rotation-dir>{{ msServer.rotation_dir }}</rotation-dir>
+                <rotation-dir>{{ msServer.getRotation_dir }}</rotation-dir>
                 <valid-day>1</valid-day>
                 <buffer-size>1024</buffer-size>
                 <append>true</append>
@@ -353,7 +357,7 @@
         <commit-timeout>240000</commit-timeout>
         <recovery-timeout>120000</recovery-timeout>
         <uncompleted-timeout>86400000</uncompleted-timeout>
-        <tx-log-dir>{{ userPath.anylinkHome }}/.workspace/tmlog</tx-log-dir>
+        <tx-log-dir>{{ userPath.getAnylinkHome }}/.workspace/tmlog</tx-log-dir>
         <automatic-recovery>false</automatic-recovery>
     </tm-config>
     <naming-server>
@@ -382,10 +386,10 @@
     </system-thread-pool>
     <data-source-remote-lookup>false</data-source-remote-lookup>
     <engine-init-on-startup>true</engine-init-on-startup>
-    <use-web-engine>{{ msServer.use_web_engine }}</use-web-engine>
-    <use-ejb-engine>{{ msServer.use_ejb_engine }}</use-ejb-engine>
-    <use-jms-engine>{{ msServer.use_jms_engine }}</use-jms-engine>
-	{%- if (msServer.use_web_engine == 'true') %}
+    <use-web-engine>{{ msServer.getUse_web_engine }}</use-web-engine>
+    <use-ejb-engine>{{ msServer.getUse_ejb_engine }}</use-ejb-engine>
+    <use-jms-engine>{{ msServer.getUse_jms_engine }}</use-jms-engine>
+	{%- if (msServer.getUse_web_engine == 'true') %}
     <web-engine>
         <jsp-engine>
             <java-compiler>java6</java-compiler>
@@ -480,7 +484,7 @@
         </blocked-url-patterns>
     </web-engine>
 	{%- endif %}
-	{%- if (msServer.use_ejb_engine == 'true') %}
+	{%- if (msServer.getUse_ejb_engine == 'true') %}
     <ejb-engine>
         <resolution>300000</resolution>
         <enable-user-notify>false</enable-user-notify>
@@ -506,7 +510,7 @@
         <use-dynamic-proxy-for-ejb2>true</use-dynamic-proxy-for-ejb2>
     </ejb-engine>
 	{%- endif %}
-	{%- if (msServer.use_jms_engine == 'true') %}
+	{%- if (msServer.getUse_jms_engine == 'true') %}
     <jms-engine>
         <service-config>
             <name>internal</name>
@@ -546,7 +550,7 @@
 	{%- endif %}
     <use-MEJB>false</use-MEJB>
     <class-ftp>true</class-ftp>
-	{%- if (msServer.lifeCycle == 'true') %}
+	{%- if (msServer.getLifeCycle == 'true') %}
     <lifecycle-invocation>
         <class-name>com.tmax.anylink.runtime.RTELifecycleListener</class-name>
         <invocation id="0">
@@ -581,7 +585,7 @@
         </invocation>
     </lifecycle-invocation>
 	{%- endif %}
-	{%- if (msServer.use_ejb_engine == 'true') %}
+	{%- if (msServer.getUse_ejb_engine == 'true') %}
     <jms-resource>
         <destination>
             <type>queue</type>
@@ -614,7 +618,7 @@
     </jms-resource>
 	{%- endif %}
     <data-sources>
-        <data-source>LogAdapter_DataSource</data-source>
+        <data-source>{{ dataSource.getData_source_id }}</data-source>
     </data-sources>
 </server>
 {%- endfor %}

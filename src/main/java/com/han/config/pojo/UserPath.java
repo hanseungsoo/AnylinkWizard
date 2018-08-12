@@ -1,12 +1,20 @@
 package com.han.config.pojo;
 
 public class UserPath {
-	public String anylinkHome;
-	public String userHome;
-	public String ip;
-	public String doaminName;
-	public String passWord;
-	public String hostName;
+	private String anylinkHome;
+	private String userHome;
+	private String ip;
+	private String doaminName;
+	private String passWord;
+	private String hostName;
+	private String logHome;
+	
+	public String getLogHome() {
+		return logHome;
+	}
+	public void setLogHome(String logHome) {
+		this.logHome = logHome;
+	}
 	public String getHostName() {
 		return hostName;
 	}
@@ -44,4 +52,17 @@ public class UserPath {
 		this.doaminName = doaminName;
 	}
 	
+	@Override
+	public String toString() {
+		StringBuffer sb = new StringBuffer();
+		sb.append("\n")	
+		  .append("애니링크 홈 경로 : " + getAnylinkHome() +"\n")
+		  .append("유저 홈 경로 : " + getUserHome() + "\n")
+		  .append("서버 IP : " + getIp() + "\n")
+		  .append("도메인 이름 : " + getDoaminName() + "\n")
+		  .append("제우스 패스워드 : " + getPassWord() + "\n")
+		  .append("호스트 네임 : " + getHostName());
+		
+		return sb.toString();
+	}
 }

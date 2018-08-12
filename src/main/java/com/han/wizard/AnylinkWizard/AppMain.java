@@ -4,6 +4,7 @@ package com.han.wizard.AnylinkWizard;
 import java.io.File;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.security.DomainLoadStoreParameter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import com.han.config.ConfigJsonParser;
 import com.han.config.generator.FileGenerator;
 import com.han.config.pojo.Clusters;
+import com.han.config.pojo.DataSource;
 import com.han.config.pojo.Domain;
 import com.han.config.pojo.Node;
 import com.han.config.pojo.UserPath;
@@ -30,6 +32,8 @@ public class AppMain {
 	ArrayList<Node> nodes = null;
 	ArrayList<Domain> domain = null;
 	ArrayList<Clusters> clusters = null;
+	ArrayList<DataSource> dataSource = null;
+	ArrayList<String> logHome = null;
 	String propertyName = null;
 	String devPath = "/home/tmax/wizard/fin";
 	public static void main(String[] args) {
@@ -41,9 +45,22 @@ public class AppMain {
 		appMain.NodesBoot();
 		appMain.ProfileBoot();
 		appMain.DomainBoot();
+		appMain.BizSystemBoot();
 	}
 	public void InitConfig() {
 		logger.info("초기화 과정 시작");
+		if(AppMain.dev) {
+			this.propertyName = "/home/tmax/wizard/setting.json";
+		}else {
+			this.propertyName = System.getProperty("setting.config.json");
+		}
+		configJsonParser = new ConfigJsonParser(propertyName);
+		nodes = configJsonParser.load("nodes");
+		domain = configJsonParser.load("domain");
+		clusters = configJsonParser.load("clusters");
+		logHome = configJsonParser.load("log_home");
+		dataSource = configJsonParser.load("dataSource");
+		
 		userPath = new UserPath();
 		userPath.setAnylinkHome(System.getProperty("anylink.home"));
 		userPath.setUserHome(System.getProperty("user.dir"));
@@ -58,28 +75,30 @@ public class AppMain {
 		}
 		userPath.setIp(local.getHostAddress());
 		userPath.setHostName(local.getHostName());
+		userPath.setLogHome(logHome.get(0));
+		logger.info(userPath.toString());
+		
 		fileGenerator = new FileGenerator();;
-		if(AppMain.dev) {
-			this.propertyName = "/home/tmax/wizard/setting.json";
-		}else {
-			this.propertyName = System.getProperty("setting.config.json");
-		}
-		configJsonParser = new ConfigJsonParser(propertyName);
-		nodes = configJsonParser.load("nodes");
-		domain = configJsonParser.load("domain");
-		clusters = configJsonParser.load("clusters");
+
 	}
 	
 	public void ValidChecker() {
 		logger.info("설정파일 검증 시작");
 		ConfigChecker configChecker = new ConfigChecker(domain, clusters, nodes);
-		if(configChecker.node() && configChecker.domian() && configChecker.cluster()) {
-			logger.info("설정파일 검증 완료");
-		}else {
-			logger.info("설정파일 검증 실패");
+		if(!configChecker.node()) {
+			logger.error("node 설정파일 검증 실패");
+			System.exit(1);
+		}
+		if(!configChecker.domian()) {
+			logger.error("domain 설정파일 검증 실패");
+			System.exit(1);
+		}
+		if(!configChecker.cluster()) {
+			logger.error("clusters 설정파일 검증 실패");
 			System.exit(1);
 		}
 		
+		logger.info("설정파일 검증 성공");
 	}
 	
 	public void NodesBoot() {
@@ -90,7 +109,15 @@ public class AppMain {
 			fileName = userPath.getAnylinkHome() + File.separator + "domains" + File.separator + "nodes.xml";
 		}
 		logger.info("Nodes 과정 시작");
-		fileGenerator.runGenerator(nodes, domain, clusters, "nodes", fileName, userPath);
+		fileGenerator.runGenerator(nodes, domain, clusters, "nodes", fileName, userPath, null);
+		
+		logger.info("nodeManager 과정 시작");
+		if(AppMain.dev) {
+			fileName = "devPath/jeusnm.properties";
+		}else {
+			fileName = userPath.getAnylinkHome() + File.separator + "nodemanager" + File.separator + "jeusnm.properties";
+		}
+		fileGenerator.runGenerator(nodes, domain, clusters, "nodeManager", fileName, userPath, null);
 	}
 	
 	public void ProfileBoot() {
@@ -106,7 +133,7 @@ public class AppMain {
 		}
 		logger.info("Profile 과정 시작");
 		
-		fileGenerator.runGenerator(nodes, domain, clusters, "dasProfile", fileName, userPath);
+		fileGenerator.runGenerator(nodes, domain, clusters, "dasProfile", fileName, userPath, null);
 	}
 	
 	public void DomainBoot() {
@@ -118,10 +145,24 @@ public class AppMain {
 		}
 		logger.info("Domain 과정 시작");
 		
-		fileGenerator.runGenerator(nodes, domain, clusters, "domain", fileName, userPath);
+		fileGenerator.runGenerator(nodes, domain, clusters, "domain", fileName, userPath, dataSource.get(0));
 	}
 	
 	public void BizSystemBoot() {
+		String fileName = null;
 		
+		logger.info("BizSystemConfig 과정 시작");
+		
+		for(int i = 0; i < domain.size(); i++) {
+			Domain ms = domain.get(i);
+			if(userPath.getHostName().equals(ms.getNode_name()) && !ms.getNode_name().equals("adminServer")) {
+				if(AppMain.dev) {
+					fileName = "devPath/bizConfigs" + i + ".xml";
+				}else {
+					fileName = userPath.getAnylinkHome() + File.separator + "domains" + File.separator + userPath.getDoaminName() + File.separator + "servers" + File.separator + ms.getName() + File.separator + "repository" + File.separator + "bizsystem";
+				}
+				fileGenerator.runGenerator(nodes, domain, clusters, "bizConfig", fileName, userPath, null);
+			}
+		}
 	}
 }
