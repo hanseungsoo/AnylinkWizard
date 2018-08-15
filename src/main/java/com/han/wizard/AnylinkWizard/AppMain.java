@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 import com.han.config.ConfigJsonParser;
 import com.han.config.generator.FileGenerator;
 import com.han.config.pojo.Clusters;
-import com.han.config.pojo.DataSource;
+import com.han.config.pojo.Repository;
 import com.han.config.pojo.Domain;
 import com.han.config.pojo.Node;
 import com.han.config.pojo.UserPath;
@@ -32,7 +32,7 @@ public class AppMain {
 	ArrayList<Node> nodes = null;
 	ArrayList<Domain> domain = null;
 	ArrayList<Clusters> clusters = null;
-	ArrayList<DataSource> dataSource = null;
+	ArrayList<Repository> dataSource = null;
 	ArrayList<String> logHome = null;
 	String propertyName = null;
 	String devPath = "/home/tmax/wizard/fin";
@@ -59,7 +59,7 @@ public class AppMain {
 		domain = configJsonParser.load("domain");
 		clusters = configJsonParser.load("clusters");
 		logHome = configJsonParser.load("log_home");
-		dataSource = configJsonParser.load("dataSource");
+		dataSource = configJsonParser.load("Repository");
 		
 		userPath = new UserPath();
 		userPath.setAnylinkHome(System.getProperty("anylink.home"));
@@ -83,8 +83,8 @@ public class AppMain {
 	}
 	
 	public void ValidChecker() {
-		logger.info("설정파일 검증 시작");
-		ConfigChecker configChecker = new ConfigChecker(domain, clusters, nodes);
+		logger.info("설정 검증 시작");
+		ConfigChecker configChecker = new ConfigChecker(domain, clusters, nodes, userPath);
 		if(!configChecker.node()) {
 			logger.error("node 설정파일 검증 실패");
 			System.exit(1);
@@ -97,8 +97,12 @@ public class AppMain {
 			logger.error("clusters 설정파일 검증 실패");
 			System.exit(1);
 		}
+		if(!configChecker.schemaFile()) {
+			logger.error("schema 생성 파일 확인 실패");
+			System.exit(1);
+		}
 		
-		logger.info("설정파일 검증 성공");
+		logger.info("설정 검증 성공");
 	}
 	
 	public void NodesBoot() {
@@ -122,6 +126,7 @@ public class AppMain {
 	
 	public void ProfileBoot() {
 		String fileName = null;
+		Domain adminServer = null;
 		if(AppMain.dev) {
 			fileName = "devPath/profile";
 		}else {
@@ -133,7 +138,21 @@ public class AppMain {
 		}
 		logger.info("Profile 과정 시작");
 		
-		fileGenerator.runGenerator(nodes, domain, clusters, "dasProfile", fileName, userPath, null);
+		for(int i = 0; i < domain.size(); i++) {
+			Domain ms = domain.get(i);
+			if(ms.getName().equals("adminServer")){
+				adminServer = ms;
+				break;
+			}		
+		}
+		
+		if(adminServer.getNode_name().equals(userPath.getHostName())) {
+			logger.info("DAS Profile 생성");
+			fileGenerator.runGenerator(nodes, domain, clusters, "dasProfile", fileName, userPath, null);
+		}else {
+			logger.info("MS Profile 생성");
+			fileGenerator.runGenerator(nodes, domain, clusters, "msProfile", fileName, userPath, null);
+		}
 	}
 	
 	public void DomainBoot() {
@@ -155,14 +174,19 @@ public class AppMain {
 		
 		for(int i = 0; i < domain.size(); i++) {
 			Domain ms = domain.get(i);
-			if(userPath.getHostName().equals(ms.getNode_name()) && !ms.getNode_name().equals("adminServer")) {
+			if(userPath.getHostName().equals(ms.getNode_name()) && !ms.getName().equals("adminServer")) {
 				if(AppMain.dev) {
 					fileName = "devPath/bizConfigs" + i + ".xml";
 				}else {
-					fileName = userPath.getAnylinkHome() + File.separator + "domains" + File.separator + userPath.getDoaminName() + File.separator + "servers" + File.separator + ms.getName() + File.separator + "repository" + File.separator + "bizsystem";
+					fileName = userPath.getAnylinkHome() + File.separator + "domains" + File.separator + userPath.getDoaminName() + File.separator + "servers" + File.separator + ms.getName() + File.separator + "repository" + File.separator + "bizsystem" + File.separator + "bizsystem.config";
 				}
 				fileGenerator.runGenerator(nodes, domain, clusters, "bizConfig", fileName, userPath, null);
 			}
 		}
+	}
+	
+	public void RepositoryBoot() {
+		logger.info("RepositoryDB 스키마 생성 시작");
+		
 	}
 }

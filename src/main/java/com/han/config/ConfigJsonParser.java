@@ -16,7 +16,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import com.han.config.pojo.Clusters;
-import com.han.config.pojo.DataSource;
+import com.han.config.pojo.Repository;
 import com.han.config.pojo.Domain;
 import com.han.config.pojo.Node;
 import com.han.wizard.AnylinkWizard.AppMain;
@@ -67,8 +67,8 @@ public class ConfigJsonParser {
 	            	tmpDomain.changeLogHome(logHome);
 	            }else if(key.equals("clusters")) {
 	            	object = (T) new Gson().fromJson(json, Clusters.class);
-	            }else if(key.equals("dataSource")) {
-	            	object = (T) new Gson().fromJson(json, DataSource.class);
+	            }else if(key.equals("Repository")) {
+	            	object = (T) new Gson().fromJson(json, Repository.class);
 	            }
 	            list.add(object);
 	        }

@@ -14,7 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.han.config.pojo.Clusters;
-import com.han.config.pojo.DataSource;
+import com.han.config.pojo.Repository;
 import com.han.config.pojo.Domain;
 import com.han.config.pojo.Domain.Listeners;
 import com.han.wizard.AnylinkWizard.AppMain;
@@ -24,7 +24,7 @@ import com.han.config.pojo.UserPath;
 public class FileGenerator {
 	private static Logger logger = LoggerFactory.getLogger(FileGenerator.class);
 	
-	public void runGenerator(List<Node> nodeList,List<Domain> domainList, List<Clusters> clustersList, String key, String path, UserPath userPath, DataSource dataSource) {
+	public void runGenerator(List<Node> nodeList,List<Domain> domainList, List<Clusters> clustersList, String key, String path, UserPath userPath, Repository dataSource) {
 		logger.info( key + " 파일 생성합니다.");
 		logger.info("파일 경로 : " + path);
 		FileOutputStream fos = null;
@@ -32,7 +32,7 @@ public class FileGenerator {
 		JtwigTemplate template = null;
 		File file = new File(path);
 		file.getParentFile().mkdirs();
-		boolean flag = false;
+		boolean overWriteFlag = false;
 		if(key.equals("nodes")) {
 			
 			template = JtwigTemplate.classpathTemplate("nodes");
@@ -41,6 +41,8 @@ public class FileGenerator {
 		}else if(key.equals("dasProfile")) {
 			List<Listeners> msServerListeners = new ArrayList<Domain.Listeners>();
 			List<Domain> msList = new ArrayList<Domain>();
+			Node node = null;
+			Domain adminServer = null;
 			for(int i = 0; i < domainList.size(); i++) {
 				Domain item = (Domain) domainList.get(i);
 				if(item.getNode_name().equals(userPath.getHostName()) && !item.getName().equals("adminServer")) {
@@ -51,12 +53,57 @@ public class FileGenerator {
 						}
 					}
 				}
+				if(item.getName().equals("adminServer")) {
+					adminServer = item;
+				}
 			}
-			flag = true;
+			for(int i = 0; i < nodeList.size(); i++) {
+				Node tmpNode = nodeList.get(i);
+				if(tmpNode.getName().equals(userPath.getHostName())) {
+					node = tmpNode;
+					break;
+				}
+			}
+			overWriteFlag = true;
 			template = JtwigTemplate.classpathTemplate("dasAlias");
 			model = JtwigModel.newModel().with("msServerList" , msList)
 										 .with("userPath", userPath)
-										 .with("msServerListeners", msServerListeners);
+										 .with("msServerListeners", msServerListeners)
+										 .with("node", node)
+										 .with("adminServer", adminServer);
+		}else if(key.equals("msProfile")) {
+			List<Listeners> msServerListeners = new ArrayList<Domain.Listeners>();
+			List<Domain> msList = new ArrayList<Domain>();
+			Node node = null;
+			Domain adminServer = null;
+			for(int i = 0; i < domainList.size(); i++) {
+				Domain item = (Domain) domainList.get(i);
+				if(item.getNode_name().equals(userPath.getHostName()) && !item.getName().equals("adminServer")) {
+					msList.add(item);
+					for(int j = 0; j< item.getListeners().size(); j++) {
+						if(item.getListeners().get(j).getName().equals("BASE")) {
+							msServerListeners.add(item.getListeners().get(j));
+						}
+					}
+				}
+				if(item.getName().equals("adminServer")) {
+					adminServer = item;
+				}
+			}
+			for(int i = 0; i < nodeList.size(); i++) {
+				Node tmpNode = nodeList.get(i);
+				if(tmpNode.getName().equals(userPath.getHostName())) {
+					node = tmpNode;
+					break;
+				}
+			}
+			overWriteFlag = true;
+			template = JtwigTemplate.classpathTemplate("msAlias");
+			model = JtwigModel.newModel().with("msServerList" , msList)
+										 .with("userPath", userPath)
+										 .with("msServerListeners", msServerListeners)
+										 .with("node", node)
+										 .with("adminServer", adminServer);
 		}else if(key.equals("domain")) {
 //			Map adminMap = new HashMap<String, String>();
 //			adminMap.put("aa", "bb");'
@@ -73,7 +120,7 @@ public class FileGenerator {
 				}
 			}
 			
-			
+			overWriteFlag = true;
 			template = JtwigTemplate.classpathTemplate("domain");
 			model = JtwigModel.newModel().with("adminServer" , adminServer)
 										 .with("msServerList", domainList)
@@ -92,12 +139,22 @@ public class FileGenerator {
 			template = JtwigTemplate.classpathTemplate("bizSystem");
 			model = JtwigModel.newModel().with("msName" , msName);
 		}else if(key.equals("nodeManager")) {
+			Node node = null;
+			for(int i = 0; i < nodeList.size(); i++) {
+				Node tmpNode = nodeList.get(i);
+				if(tmpNode.getHost().equals(userPath.getHostName())) {
+					node = tmpNode;
+					break;
+				}
+			}
+			
 			template = JtwigTemplate.classpathTemplate("nodeManager");
-			model = JtwigModel.newModel().with("userPath" , userPath);
+			model = JtwigModel.newModel().with("userPath" , userPath)
+										 .with("node", node);
 		}
 		
 		try {
-			fos = new FileOutputStream(file, flag);
+			fos = new FileOutputStream(file, overWriteFlag);
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

@@ -149,15 +149,15 @@
                     {%- endfor %}
                 </cluster>
                 {%- endif %}
-                {%- if (length(msServers) > 0) %}
+                {%- if (length(msServerList) > 0) %}
                 <server>
-                	{%- for msServer in msServers %}
+                	{%- for msServer in msServerList %}
                     <name>{{ msServer.getName }}</name>
                     {%- endfor %}
                 </server>
                 {%- endif %}
             </targets>
-            <options>
+            <options>	
                 <classloading>ISOLATED</classloading>
                 <fast-deploy>false</fast-deploy>
                 <keep-generated>false</keep-generated>

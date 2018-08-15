@@ -1,29 +1,35 @@
 package com.han.config.util;
 
+import java.io.File;
+import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.han.config.generator.FileGenerator;
 import com.han.config.pojo.Clusters;
-import com.han.config.pojo.DataSource;
+import com.han.config.pojo.Repository;
 import com.han.config.pojo.Domain;
 import com.han.config.pojo.Domain.Listeners;
 import com.han.config.pojo.Node;
+import com.han.config.pojo.UserPath;
 
 public class ConfigChecker {
 	private static Logger logger = LoggerFactory.getLogger(ConfigChecker.class);
 	List<Domain> domainList;
 	List<Clusters> clusterList;
 	List<Node> nodeList;
-	List<DataSource> dataSource;
-	public ConfigChecker(List<Domain> domainList, List<Clusters> clusterList, List<Node> nodeList) {
+	List<Repository> dataSource;
+	UserPath userPath = null;
+	public ConfigChecker(List<Domain> domainList, List<Clusters> clusterList, List<Node> nodeList, UserPath userPath) {
 		this.domainList = domainList;
 		this.clusterList = clusterList;
 		this.nodeList = nodeList;
+		this.userPath = userPath;
 	}
 	
 	public boolean node() {
@@ -40,6 +46,12 @@ public class ConfigChecker {
 				
 				int port = Integer.parseInt(node.getPort());
 				if(!((0 < port) && (port < 665535))) {
+					return false;
+				}
+				
+				
+				if(!node.getHost().equals(node.getName())) {
+					logger.error("노드 설정 파일의 Host와 Name이 같지 않습니다.");
 					return false;
 				}
 			}
@@ -135,10 +147,12 @@ public class ConfigChecker {
 		List dataSourceType = new ArrayList<String>(
 				Arrays.asList("ConnectionPoolDataSource", "DataSource"));
 		try{
-			if(dataSource.size() == 0) {
+			if(dataSource.size() == 0 || dataSource.size() > 1) {
+				logger.error("설정 파일에  Repository 데이터 소스는 1개 여야합니다.");
 				return false;
 			}
-			DataSource source = dataSource.get(0);
+			
+			Repository source = dataSource.get(0);
 			if(!(dataSourceClassNameList.contains(source.getData_source_class_name()) || dataSourceType.contains(source.getData_source_type()))) {
 				return false;
 			}
@@ -152,5 +166,17 @@ public class ConfigChecker {
 		}
 		
 		return true;
+	}
+	
+	public boolean schemaFile() {
+		File dir = new File(".");
+		FileFilter fileFilter = new WildcardFileFilter("create-anylink-ERD*.sql");
+		File[] files = dir.listFiles(fileFilter);
+		if(files.length > 1 || files.length == 0) {
+			logger.error("스키마 파일은 오직 1개여야 합니다.");
+			return false;
+		}else {
+			return true;
+		}
 	}
 }

@@ -1,6 +1,6 @@
 useNodeManager=true
 host={{ userPath.getHostName }}
-port=7730
+port={{ node.getPort }}
 useSSLListener=false
 serverMonitoringPeriod=500
 serverAutoRestart=true

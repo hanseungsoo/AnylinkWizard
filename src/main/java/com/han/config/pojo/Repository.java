@@ -2,7 +2,7 @@ package com.han.config.pojo;
 
 import com.google.gson.annotations.SerializedName;
 
-public class DataSource {
+public class Repository {
 	@SerializedName("data-source-id")
 	private String data_source_id;
 	@SerializedName("data-source-class-name")

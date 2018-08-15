@@ -111,6 +111,9 @@
 		}
 	],
 	"clusters" : [
-		
+		{
+			"name" : "ANYLINK_CLS",
+			"servers" : [ "cluster_server1" , "cluster_server2" ]
+		}
 	]
 }
