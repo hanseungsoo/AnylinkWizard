@@ -23,7 +23,7 @@ import com.han.config.util.ConfigChecker;
 
 
 public class AppMain {
-	public static Boolean dev = true;
+	public static Boolean dev = false;
 	String userHome = null;
 	private static Logger logger = LoggerFactory.getLogger(AppMain.class);
 	ConfigJsonParser configJsonParser = null;

@@ -142,10 +142,6 @@ public class ConfigChecker {
 	}
 	
 	public boolean dataSource() {
-		List dataSourceClassNameList = new ArrayList<String>(
-					Arrays.asList("com.tmax.tibero.jdbc.ext.TbConnectionPoolDataSource", "oracle.jdbc.pool.OracleConnectionPoolDataSource", "org.mariadb.jdbc.MySQLDataSource", "org.mariadb.jdbc.MariaDbDataSource"));
-		List dataSourceType = new ArrayList<String>(
-				Arrays.asList("ConnectionPoolDataSource", "DataSource"));
 		try{
 			if(dataSource.size() == 0 || dataSource.size() > 1) {
 				logger.error("설정 파일에  Repository 데이터 소스는 1개 여야합니다.");
@@ -153,9 +149,6 @@ public class ConfigChecker {
 			}
 			
 			Repository source = dataSource.get(0);
-			if(!(dataSourceClassNameList.contains(source.getData_source_class_name()) || dataSourceType.contains(source.getData_source_type()))) {
-				return false;
-			}
 			int port = Integer.parseInt(source.getPort_number());
 			if(!((0 < port) && (port < 665535))) {
 				return false;

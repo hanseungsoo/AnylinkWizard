@@ -99,9 +99,6 @@
 	],
 	"dataSource" : [
 		{
-			"data-source-id" : "LogAdapter_DataSource",
-			"data-source-class-name" : "com.tmax.tibero.jdbc.ext.TbConnectionPoolDataSource",
-			"data-source-type" : "ConnectionPoolDataSource",
 			"vendor" : "tibero",
 			"server-name" : "192.168.56.101",			
 			"port-number" : "8629",

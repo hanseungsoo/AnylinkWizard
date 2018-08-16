@@ -69,6 +69,23 @@ public class ConfigJsonParser {
 	            	object = (T) new Gson().fromJson(json, Clusters.class);
 	            }else if(key.equals("Repository")) {
 	            	object = (T) new Gson().fromJson(json, Repository.class);
+	            	Repository tmpRepo = (Repository)object;
+	            	if(tmpRepo.getVendor().toLowerCase().equals("tibero")) {
+	            		tmpRepo.setData_source_class_name("com.tmax.tibero.jdbc.ext.TbConnectionPoolDataSource");
+	            		tmpRepo.setData_source_id("LogAdapter_DataSource");
+	            		tmpRepo.setData_source_type("ConnectionPoolDataSource");
+	            	}else if(tmpRepo.getVendor().toLowerCase().equals("oracle")) {
+	            		tmpRepo.setData_source_class_name("oracle.jdbc.pool.OracleConnectionPoolDataSource");
+	            		tmpRepo.setData_source_id("LogAdapter_DataSource");
+	            		tmpRepo.setData_source_type("ConnectionPoolDataSource");
+	            	}else if(tmpRepo.getVendor().toLowerCase().equals("others")) {
+	            		tmpRepo.setData_source_class_name("org.mariadb.jdbc.MariaDbDataSource");
+	            		tmpRepo.setData_source_id("LogAdapter_DataSource");
+	            		tmpRepo.setData_source_type("ConnectionPoolDataSource");
+	            	}else {
+	            		logger.error("해당 DataBase는 지원하지 않습니다.");
+	            		System.exit(1);
+	            	}
 	            }
 	            list.add(object);
 	        }
