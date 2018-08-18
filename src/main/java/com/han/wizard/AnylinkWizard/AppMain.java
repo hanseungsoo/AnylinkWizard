@@ -14,12 +14,15 @@ import org.slf4j.LoggerFactory;
 
 import com.han.config.ConfigJsonParser;
 import com.han.config.generator.FileGenerator;
+import com.han.config.generator.SchemaGenerator;
 import com.han.config.pojo.Clusters;
 import com.han.config.pojo.Repository;
 import com.han.config.pojo.Domain;
 import com.han.config.pojo.Node;
 import com.han.config.pojo.UserPath;
 import com.han.config.util.ConfigChecker;
+import com.han.config.util.EncryptUtil;
+import com.han.config.util.FileMover;
 
 
 public class AppMain {
@@ -28,14 +31,16 @@ public class AppMain {
 	private static Logger logger = LoggerFactory.getLogger(AppMain.class);
 	ConfigJsonParser configJsonParser = null;
 	FileGenerator fileGenerator = null;
+	SchemaGenerator schemaGenerator = null;
 	UserPath userPath = null;
 	ArrayList<Node> nodes = null;
 	ArrayList<Domain> domain = null;
 	ArrayList<Clusters> clusters = null;
-	ArrayList<Repository> dataSource = null;
+	ArrayList<Repository> repository = null;
 	ArrayList<String> logHome = null;
-	String propertyName = null;
+	String propertyName = null, patchPath = null;
 	String devPath = "/home/tmax/wizard/fin";
+	FileMover fileMover = null;
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		logger.info("CREATE BY Seungsoo_Han");
@@ -59,7 +64,7 @@ public class AppMain {
 		domain = configJsonParser.load("domain");
 		clusters = configJsonParser.load("clusters");
 		logHome = configJsonParser.load("log_home");
-		dataSource = configJsonParser.load("Repository");
+		repository = configJsonParser.load("Repository");
 		
 		userPath = new UserPath();
 		userPath.setAnylinkHome(System.getProperty("anylink.home"));
@@ -78,7 +83,9 @@ public class AppMain {
 		userPath.setLogHome(logHome.get(0));
 		logger.info(userPath.toString());
 		
-		fileGenerator = new FileGenerator();;
+		fileGenerator = new FileGenerator();
+		schemaGenerator = new SchemaGenerator();
+		fileMover = new FileMover();
 
 	}
 	
@@ -164,7 +171,7 @@ public class AppMain {
 		}
 		logger.info("Domain 과정 시작");
 		
-		fileGenerator.runGenerator(nodes, domain, clusters, "domain", fileName, userPath, dataSource.get(0));
+		fileGenerator.runGenerator(nodes, domain, clusters, "domain", fileName, userPath, repository.get(0));
 	}
 	
 	public void BizSystemBoot() {
@@ -186,7 +193,51 @@ public class AppMain {
 	}
 	
 	public void RepositoryBoot() {
+		String srcPath = null, destPath = null;
 		logger.info("RepositoryDB 스키마 생성 시작");
+		if(AppMain.dev) {
+			srcPath = "datasource";
+			destPath = "devPath";
+		}else {
+			srcPath = "datasource";
+			destPath = userPath.getAnylinkHome() + File.separator + "lib" + File.separator + "datasource";
+		}
 		
+		
+		schemaGenerator.runGenerator(repository.get(0));
+		
+		switch(repository.get(0).getVendor().toLowerCase()) {
+		case "tibero":
+			fileMover.runFileMove(srcPath, destPath, "tibero*.jar");
+			break;
+		case "oracle":
+			fileMover.runFileMove(srcPath, destPath, "ojdbc*.jar");
+			break;
+		case "others":
+			fileMover.runFileMove(srcPath, destPath, "mariadb*.jar");
+			break;
+		}
+	}
+	
+	public void PatchBoot() {
+		String srcPath = null, destPath = null;
+		logger.info("바이너리 패치 시작");
+		if(AppMain.dev) {
+			srcPath = "patch";
+			destPath = "devPath";
+		}else {
+			srcPath = "patch";
+			destPath = userPath.getAnylinkHome() + File.separator + "domains" + File.separator + userPath.getDoaminName() + File.separator + "lib" + File.separator + "application";
+		}
+		fileMover.runFileMove(srcPath, destPath, "anylink-distribution*.jar");
+		
+		if(AppMain.dev) {
+			srcPath = "patch";
+			destPath = "devPath";
+		}else {
+			srcPath = "patch";
+			destPath = userPath.getAnylinkHome() + File.separator + "domains" + File.separator + userPath.getDoaminName() + File.separator + ".application" + File.separator + "anylink-admin";
+		}
+		fileMover.runFileMove(srcPath, destPath, "anylink-admin*.jar");
 	}
 }

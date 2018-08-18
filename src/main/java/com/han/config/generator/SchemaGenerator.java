@@ -20,12 +20,7 @@ import com.han.config.pojo.Repository;
 public class SchemaGenerator {
 	private static Logger logger = LoggerFactory.getLogger(SchemaGenerator.class);
 	
-	private Repository dataSource;
-	public SchemaGenerator(Repository dataSource) {
-		this.dataSource = dataSource;
-	}
-	
-	public void runGenerator() {
+	public void runGenerator(Repository repository) {
 		logger.info("RepositoryDB에 테이블을 생성 시작");
 		File dir = new File(".");
 		Connection conn = null;
@@ -36,7 +31,7 @@ public class SchemaGenerator {
 		logger.info("파일 경로 : " + files[0].getAbsolutePath());
 		String sqlString[] = getQuery(files[0]);
 		
-		conn = getConnection();
+		conn = getConnection(repository);
 		try {
 			st = conn.createStatement();
 			
@@ -83,20 +78,20 @@ public class SchemaGenerator {
 		logger.info("총 %d건 성공 %d건 실패 %d건", max, success, fail);
 	}
 	
-	public Connection getConnection() {
+	public Connection getConnection(Repository repository) {
 		Connection conn = null;
 		
 		String URL = null;
 		
-		if(dataSource.getVendor().equals("oracle")) {
-			URL = "jdbc:oracle:thin:@" + dataSource.getServer_name() + ":" + dataSource.getPort_number() + ":" + dataSource.getDatabase_name();
-		}else if(dataSource.getVendor().equals("tibero")) {
-			URL = "jdbc:tibero:thin:@" + dataSource.getServer_name() + ":" + dataSource.getPort_number() + ":" + dataSource.getDatabase_name();
+		if(repository.getVendor().equals("oracle")) {
+			URL = "jdbc:oracle:thin:@" + repository.getServer_name() + ":" + repository.getPort_number() + ":" + repository.getDatabase_name();
+		}else if(repository.getVendor().equals("tibero")) {
+			URL = "jdbc:tibero:thin:@" + repository.getServer_name() + ":" + repository.getPort_number() + ":" + repository.getDatabase_name();
 		}
-		
+		logger.info("연결 정보 : " + URL);
 		try {
-			Class.forName(dataSource.getData_source_class_name());
-			conn = DriverManager.getConnection(URL, dataSource.getUser(), dataSource.getPassword());
+			Class.forName(repository.getData_source_class_name());
+			conn = DriverManager.getConnection(URL, repository.getUser(), repository.getPassword());
 			
 			logger.info("데이터베이스에 연결되었습니다.");
 		} catch (ClassNotFoundException e) {

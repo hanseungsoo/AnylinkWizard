@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ns0:disConfig xmlns:ns0="http://www.tmaxsoft.com/schemas/anylink/" xmlns:ns2="http://www.tmaxsoft.com/schemas/anylink/reliableQueue/" xmlns:ns1="http://www.tmaxsoft.com/schemas/anylink/common/" xmlns:ns3="http://www.tmaxsoft.com/schemas/anylink/serverPlugin/">
+   <ns0:port>7127</ns0:port>
+   <ns0:repository-path>{{ userPath.getAnylinkHome }}/server/dis/repository</ns0:repository-path>
+   <ns0:content-path>{{ userPath.getAnylinkHome }}/server/dis/content</ns0:content-path>
+   <ns0:temp-path>{{ userPath.getAnylinkHome }}/server/dis/temp</ns0:temp-path>
+   <ns0:compile-lib-path>{{ userPath.getAnylinkHome }}/domains/anylink_domain/lib/application</ns0:compile-lib-path>
+   <ns0:shared-lib-path>{{ userPath.getAnylinkHome }}/server/dis/shared-lib</ns0:shared-lib-path>
+   <ns0:repository-log-path>{{ userPath.getAnylinkHome }}/server/dis/repository</ns0:repository-log-path>
+   <ns0:repository-log-keep-days>0</ns0:repository-log-keep-days>
+   <ns0:db-vendor>{{ repository.getVendor }}</ns0:db-vendor>
+   <ns0:data-source>{{ repository.getName }}</ns0:data-source>
+   <ns0:db-connection-pool-size>10</ns0:db-connection-pool-size>
+   <ns0:db-idle-test-period>0</ns0:db-idle-test-period>
+   <ns0:db-hibernate-show_sql>false</ns0:db-hibernate-show_sql>
+   <ns0:configuration-transfer-class-name></ns0:configuration-transfer-class-name>
+   <ns0:message-validity-class-name></ns0:message-validity-class-name>
+   <ns0:jeus-user>administrator</ns0:jeus-user>
+   <ns0:jeus-password>{{ encodePasswd }}</ns0:jeus-password>
+   <ns0:systemLogger>
+      <ns0:keepDays>0</ns0:keepDays>
+      <ns0:pattern>{{ userPath.getLogHome }}/dislog/dis_%d{1}.log</ns0:pattern>
+      <ns0:loggers>
+         <ns0:name>anylink</ns0:name>
+         <ns0:logLevel>INFO</ns0:logLevel>
+      </ns0:loggers>
+   </ns0:systemLogger>
+   <ns0:autoFix>true</ns0:autoFix>
+   <ns0:cacheExpiryTime>0</ns0:cacheExpiryTime>
+   <ns0:db-prefix>al</ns0:db-prefix>
+   <ns0:user-history-keep-days>0</ns0:user-history-keep-days>
+   <ns0:stat-table-truncate-interval>0</ns0:stat-table-truncate-interval>
+   <ns0:SSO-login>false</ns0:SSO-login>
+   <ns0:SsoUserClass>
+      <ns0:callUserClass>false</ns0:callUserClass>
+   </ns0:SsoUserClass>
+   <ns0:treeExpand>tree_open</ns0:treeExpand>
+   <ns0:logsaver_onoff>false</ns0:logsaver_onoff>
+   <ns0:resource-copy-path></ns0:resource-copy-path>
+   <ns0:searchPermittedBiztx>false</ns0:searchPermittedBiztx>
+   <ns0:msgTransferHandlerName></ns0:msgTransferHandlerName>
+   <ns0:partner_address_handler></ns0:partner_address_handler>
+   <ns0:usermeta_filename></ns0:usermeta_filename>
+   <ns0:encrypt_type>MD5</ns0:encrypt_type>
+   <ns0:userPasswordEncoding>HEX</ns0:userPasswordEncoding>
+   <ns0:tableSelection>field</ns0:tableSelection>
+</ns0:disConfig>
