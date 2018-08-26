@@ -15,6 +15,7 @@ import com.han.config.pojo.Clusters;
 import com.han.config.pojo.Repository;
 import com.han.config.pojo.Domain;
 import com.han.config.pojo.Domain.Listeners;
+import com.han.wizard.AnylinkWizard.AppMain;
 import com.han.config.pojo.Node;
 import com.han.config.pojo.UserPath;
 
@@ -46,12 +47,6 @@ public class ConfigChecker {
 				
 				int port = Integer.parseInt(node.getPort());
 				if(!((0 < port) && (port < 665535))) {
-					return false;
-				}
-				
-				
-				if(!node.getHost().equals(node.getName())) {
-					logger.error("노드 설정 파일의 Host와 Name이 같지 않습니다.");
 					return false;
 				}
 			}
@@ -111,7 +106,7 @@ public class ConfigChecker {
 		List<String> msName = new ArrayList<String>();
 		try {
 			if(clusterList.size() == 0) {
-				logger.info("000");
+				logger.info("싱글 설정 입니다.");
 				return true;
 			}
 			for(int i = 0; i < domainList.size(); i++) {
@@ -153,6 +148,10 @@ public class ConfigChecker {
 			if(!((0 < port) && (port < 665535))) {
 				return false;
 			}
+			if(source.getVendor().equals("others")) {
+				logger.warn("others 타입은 maria DB만 지원합니다.");
+			}
+			
 		}catch(Exception e) {
 			e.printStackTrace();
 			return false;
@@ -162,8 +161,11 @@ public class ConfigChecker {
 	}
 	
 	public boolean schemaFile() {
-		File dir = new File(".");
-		FileFilter fileFilter = new WildcardFileFilter("create-anylink-ERD*.sql");
+		if(!AppMain.adminServerName.equals(userPath.getHostName())) {
+			return true;
+		}
+		File dir = new File("datasource");
+		FileFilter fileFilter = new WildcardFileFilter("create-anylink-*.sql");
 		File[] files = dir.listFiles(fileFilter);
 		if(files.length > 1 || files.length == 0) {
 			logger.error("스키마 파일은 오직 1개여야 합니다.");

@@ -157,7 +157,7 @@ public class Domain {
 
 
 	public void changeLogHome(String logHome) {
-		setLog_home(getLog_home().replace("log_home", logHome) + File.separator + "jeus");
-		setRotation_dir(getRotation_dir().replace("log_home", logHome) + File.separator + "jeus" + File.separator + getName());
+		setLog_home(getLog_home().replace("log_home", logHome));
+		setRotation_dir(getRotation_dir().replace("log_home", logHome));
 	}
 }

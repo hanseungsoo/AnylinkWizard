@@ -8,7 +8,7 @@
    <ns0:shared-lib-path>{{ userPath.getAnylinkHome }}/server/dis/shared-lib</ns0:shared-lib-path>
    <ns0:repository-log-path>{{ userPath.getAnylinkHome }}/server/dis/repository</ns0:repository-log-path>
    <ns0:repository-log-keep-days>0</ns0:repository-log-keep-days>
-   <ns0:db-vendor>{{ repository.getVendor }}</ns0:db-vendor>
+   <ns0:db-vendor>{{ vendor }}</ns0:db-vendor>
    <ns0:data-source>{{ repository.getName }}</ns0:data-source>
    <ns0:db-connection-pool-size>10</ns0:db-connection-pool-size>
    <ns0:db-idle-test-period>0</ns0:db-idle-test-period>

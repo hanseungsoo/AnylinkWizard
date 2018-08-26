@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <domain xmlns="http://www.tmaxsoft.com/xml/ns/jeus" version="7.0">
-    <production-mode>@@PRODUCTIONMODE@@</production-mode>
-    <id>@@ID@@</id>
+    <production-mode>true</production-mode>
+    <id>{{ id }}</id>
     <security-manager>
         <default-application-domain>SYSTEM_DOMAIN</default-application-domain>
         <security-domains>
@@ -123,7 +123,7 @@
     <deployed-applications>
         <deployed-application>
             <id>anylink-admin</id>
-            <path>{{ userPath.getAnylinkHome }}/domain/{{ userPath.getDoaminName }}.applications/anylink-admin/anylink-admin.war</path>
+            <path>{{ userPath.getAnylinkHome }}/domain/{{ userPath.getDoaminName }}/.applications/anylink-admin/anylink-admin.war</path>
             <type>WAR</type>
             <targets>
                 <server>
@@ -139,7 +139,7 @@
         </deployed-application>
         <deployed-application>
             <id>anylink-http-servlet</id>
-            <path>{{ userPath.getAnylinkHome }}/domain/{{ userPath.getDoaminName }}.applications/anylink-http-servlet/AnyLink_Http_Servlet.war</path>
+            <path>{{ userPath.getAnylinkHome }}/domain/{{ userPath.getDoaminName }}/.applications/anylink-http-servlet/AnyLink_Http_Servlet.war</path>
             <type>WAR</type>
             <targets>
             	{%- if (length(clustersList) > 0) %}

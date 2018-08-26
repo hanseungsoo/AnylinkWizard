@@ -3,6 +3,7 @@ package com.han.config.generator;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -10,10 +11,13 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xeustechnologies.jcl.JarClassLoader;
 
 import com.han.config.pojo.Repository;
 
@@ -22,19 +26,21 @@ public class SchemaGenerator {
 	
 	public void runGenerator(Repository repository) {
 		logger.info("RepositoryDB에 테이블을 생성 시작");
-		File dir = new File(".");
+		File dir = new File("datasource");
 		Connection conn = null;
 		Statement st = null;
-		FileFilter fileFilter = new WildcardFileFilter("create-anylink-ERD*.sql");
+		FileFilter fileFilter = new WildcardFileFilter("create-anylink-*.sql");
 		File[] files = dir.listFiles(fileFilter);
 		int max = 0, success = 0, fail = 0;
 		logger.info("파일 경로 : " + files[0].getAbsolutePath());
 		String sqlString[] = getQuery(files[0]);
+		List<String> failList = new ArrayList<String>();
+		
 		
 		conn = getConnection(repository);
 		try {
 			st = conn.createStatement();
-			
+			st.executeUpdate("USE " + repository.getDatabase_name());
 			for(int i = 0; i < sqlString.length; i++)
             {
                 // we ensure that there is no spaces before or after the request string
@@ -42,16 +48,17 @@ public class SchemaGenerator {
                 if(!sqlString[i].trim().equals(""))
                 {
                 	max++;
+                	
                 	try {
-                		st.executeUpdate(sqlString[i]);
-                		logger.info("run success : " + sqlString[i]);
+                		st.executeUpdate(sqlString[i].trim());
                 		success++;
                 	}catch(SQLException e) {
-                		logger.error("run fail : " + sqlString[i]);
+                		failList.add(sqlString[i].trim());
                 		fail++;
                 	}                    
                 }
             }
+                   
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -75,7 +82,10 @@ public class SchemaGenerator {
 			}
 		}
 		logger.info("RepositoryDB에 테이블을 생성 완료");
-		logger.info("총 %d건 성공 %d건 실패 %d건", max, success, fail);
+		logger.info("총 " + max + "건, 성공 " + success + "건, 실패 " + fail + "건");
+		for(String failSql : failList) {
+			logger.error("run fail : " + failSql);
+		}
 	}
 	
 	public Connection getConnection(Repository repository) {
@@ -87,6 +97,8 @@ public class SchemaGenerator {
 			URL = "jdbc:oracle:thin:@" + repository.getServer_name() + ":" + repository.getPort_number() + ":" + repository.getDatabase_name();
 		}else if(repository.getVendor().equals("tibero")) {
 			URL = "jdbc:tibero:thin:@" + repository.getServer_name() + ":" + repository.getPort_number() + ":" + repository.getDatabase_name();
+		}else if(repository.getVendor().equals("others")){
+			URL = "jdbc:mariadb://" + repository.getServer_name() + ":" + repository.getPort_number() + ":" + repository.getDatabase_name();	
 		}
 		logger.info("연결 정보 : " + URL);
 		try {

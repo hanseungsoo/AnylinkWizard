@@ -97,7 +97,7 @@
 			"use-web-engine" : "true"
 		}
 	],
-	"dataSource" : [
+	"Repository" : [
 		{
 			"vendor" : "tibero",
 			"server-name" : "192.168.56.101",			

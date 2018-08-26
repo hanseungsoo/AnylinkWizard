@@ -38,7 +38,8 @@ public class AppMain {
 	ArrayList<Clusters> clusters = null;
 	ArrayList<Repository> repository = null;
 	ArrayList<String> logHome = null;
-	String propertyName = null, patchPath = null;
+	String propertyName = null, patchPath = null; 
+	public static String adminServerName = null;
 	String devPath = "/home/tmax/wizard/fin";
 	FileMover fileMover = null;
 	public static void main(String[] args) {
@@ -51,6 +52,9 @@ public class AppMain {
 		appMain.ProfileBoot();
 		appMain.DomainBoot();
 		appMain.BizSystemBoot();
+		appMain.RepositoryBoot();
+		appMain.PatchBoot();
+		appMain.DisConfigBoot();
 	}
 	public void InitConfig() {
 		logger.info("초기화 과정 시작");
@@ -68,8 +72,9 @@ public class AppMain {
 		
 		userPath = new UserPath();
 		userPath.setAnylinkHome(System.getProperty("anylink.home"));
-		userPath.setUserHome(System.getProperty("user.dir"));
+		userPath.setUserHome(System.getProperty("user.home"));
 		userPath.setPassWord(System.getProperty("jeus.passwd"));
+		userPath.setDoaminName(System.getProperty("domain.name"));
 		InetAddress local = null;
 		try {
 			local = InetAddress.getLocalHost();
@@ -86,6 +91,15 @@ public class AppMain {
 		fileGenerator = new FileGenerator();
 		schemaGenerator = new SchemaGenerator();
 		fileMover = new FileMover();
+		for(int i = 0; i < domain.size(); i++) {
+			Domain ms = domain.get(i);
+			if(ms.getName().equals("adminServer")){
+				adminServerName = ms.getNode_name();
+				break;
+			}		
+		}
+		
+		
 
 	}
 	
@@ -137,23 +151,16 @@ public class AppMain {
 		if(AppMain.dev) {
 			fileName = "devPath/profile";
 		}else {
-			fileName = userHome + File.separator + ".bash_profile";
+			fileName = userPath.getUserHome() + File.separator + ".bash_profile";
 			File tmpFile = new File(fileName);
 			if(!tmpFile.exists()) {
-				fileName = userHome + File.separator + ".profile";
+				fileName = userPath.getUserHome() + File.separator + ".profile";
 			}
 		}
 		logger.info("Profile 과정 시작");
 		
-		for(int i = 0; i < domain.size(); i++) {
-			Domain ms = domain.get(i);
-			if(ms.getName().equals("adminServer")){
-				adminServer = ms;
-				break;
-			}		
-		}
 		
-		if(adminServer.getNode_name().equals(userPath.getHostName())) {
+		if(adminServerName.equals(userPath.getHostName())) {
 			logger.info("DAS Profile 생성");
 			fileGenerator.runGenerator(nodes, domain, clusters, "dasProfile", fileName, userPath, null);
 		}else {
@@ -171,7 +178,12 @@ public class AppMain {
 		}
 		logger.info("Domain 과정 시작");
 		
-		fileGenerator.runGenerator(nodes, domain, clusters, "domain", fileName, userPath, repository.get(0));
+		if(adminServerName.equals(userPath.getHostName())) {
+			fileGenerator.runGenerator(nodes, domain, clusters, "domain", fileName, userPath, repository.get(0));
+		}else {
+			logger.info("ms 서버는 domain.xml 설정을 진행 하지 않습니다.");
+		}
+		
 	}
 	
 	public void BizSystemBoot() {
@@ -193,6 +205,10 @@ public class AppMain {
 	}
 	
 	public void RepositoryBoot() {
+		if(!adminServerName.equals(userPath.getHostName())){
+			logger.info("ms서버는 RepositoryDB 스키마 생성을 하지 않습니다.");
+			return;
+		}
 		String srcPath = null, destPath = null;
 		logger.info("RepositoryDB 스키마 생성 시작");
 		if(AppMain.dev) {
@@ -236,8 +252,24 @@ public class AppMain {
 			destPath = "devPath";
 		}else {
 			srcPath = "patch";
-			destPath = userPath.getAnylinkHome() + File.separator + "domains" + File.separator + userPath.getDoaminName() + File.separator + ".application" + File.separator + "anylink-admin";
+			destPath = userPath.getAnylinkHome() + File.separator + "domains" + File.separator + userPath.getDoaminName() + File.separator + ".applications" + File.separator + "anylink-admin";
 		}
-		fileMover.runFileMove(srcPath, destPath, "anylink-admin*.jar");
+		fileMover.runFileMove(srcPath, destPath, "anylink-admin*.war");
+	}
+	
+	public void DisConfigBoot() {
+		if(!adminServerName.equals(userPath.getHostName())){
+			logger.info("ms서버는 dis-config.xml 생성을 하지 않습니다.");
+			return;
+		}
+		String fileName = null;
+		
+		logger.info("dis-config 과정 시작");
+		if(AppMain.dev) {
+			fileName = "devPath/dis-config.xml";
+		}else {
+			fileName = userPath.getAnylinkHome() + File.separator + "dis_config" + File.separator + "dis-config.xml";
+		}
+		fileGenerator.runGenerator(nodes, domain, clusters, "dis-config", fileName, userPath, repository.get(0));
 	}
 }

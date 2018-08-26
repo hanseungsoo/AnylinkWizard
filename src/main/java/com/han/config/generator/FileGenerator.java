@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import org.jtwig.JtwigModel;
 import org.jtwig.JtwigTemplate;
@@ -20,11 +21,12 @@ import com.han.config.pojo.Domain.Listeners;
 import com.han.wizard.AnylinkWizard.AppMain;
 import com.han.config.pojo.Node;
 import com.han.config.pojo.UserPath;
+import com.han.config.util.EncryptUtil;
 
 public class FileGenerator {
 	private static Logger logger = LoggerFactory.getLogger(FileGenerator.class);
 	
-	public void runGenerator(List<Node> nodeList,List<Domain> domainList, List<Clusters> clustersList, String key, String path, UserPath userPath, Repository dataSource) {
+	public void runGenerator(List<Node> nodeList,List<Domain> domainList, List<Clusters> clustersList, String key, String path, UserPath userPath, Repository repository) {
 		logger.info( key + " 파일 생성합니다.");
 		logger.info("파일 경로 : " + path);
 		FileOutputStream fos = null;
@@ -107,6 +109,8 @@ public class FileGenerator {
 		}else if(key.equals("domain")) {
 //			Map adminMap = new HashMap<String, String>();
 //			adminMap.put("aa", "bb");'
+			Random rnd = new Random();
+			int n = 100000000 + rnd.nextInt(900000000);
 			Domain adminServer = (Domain)domainList.remove(0);
 			for(int i = 0; i < domainList.size(); i++) {
 				Domain item = (Domain) domainList.get(i);
@@ -120,37 +124,61 @@ public class FileGenerator {
 				}
 			}
 			
-			overWriteFlag = true;
+			overWriteFlag = false;
 			template = JtwigTemplate.classpathTemplate("domain");
 			model = JtwigModel.newModel().with("adminServer" , adminServer)
 										 .with("msServerList", domainList)
 										 .with("userPath", userPath)
 										 .with("clustersList", clustersList)
-										 .with("dataSource", dataSource);
+										 .with("dataSource", repository)
+										 .with("id", n);
 		}else if(key.equals("bizConfig")) {
 			String msName;
 			if(AppMain.dev) {
 				msName = "test";
 			}else {
 				String[] msNames = path.split(File.separator);
-				msName = msNames[msNames.length-3];
+				msName = msNames[msNames.length-4];
 			}
-			
+			overWriteFlag = false;
 			template = JtwigTemplate.classpathTemplate("bizSystem");
 			model = JtwigModel.newModel().with("msName" , msName);
 		}else if(key.equals("nodeManager")) {
 			Node node = null;
 			for(int i = 0; i < nodeList.size(); i++) {
 				Node tmpNode = nodeList.get(i);
-				if(tmpNode.getHost().equals(userPath.getHostName())) {
+				if(tmpNode.getName().equals(userPath.getHostName())) {
 					node = tmpNode;
 					break;
 				}
 			}
-			
+			overWriteFlag = false;
 			template = JtwigTemplate.classpathTemplate("nodeManager");
 			model = JtwigModel.newModel().with("userPath" , userPath)
 										 .with("node", node);
+		}else if(key.equals("dis-config")) {
+			overWriteFlag = false;
+			String vendor = null;
+			String encrypt = null;
+			EncryptUtil encUtil = new EncryptUtil();
+			
+			encrypt = encUtil.encode(userPath.getPassWord());
+			switch(repository.getVendor().toLowerCase()){
+				case "oracle" :
+					vendor = "oracle";
+					break;
+				case "tibero" :
+					vendor = "tibero";
+					break;
+				case "others" :
+					vendor = "maria";
+					break;
+			}
+			template = JtwigTemplate.classpathTemplate("dis_config");
+			model = JtwigModel.newModel().with("userPath" , userPath)
+										 .with("repository", repository)
+										 .with("vendor", vendor)
+										 .with("encodePasswd", encrypt);
 		}
 		
 		try {

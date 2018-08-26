@@ -306,9 +306,9 @@
         <base>BASE</base>
         {%- for msServerListener in msServer.getListeners %}
         <listener>
-            <name>{{ mslistener.getName }}</name>
-            <listen-port>{{ mslistener.getPort }}</listen-port>
-            <listen-address>{{ mslistener.getAddress }}</listen-address>
+            <name>{{ msServerListener.getName }}</name>
+            <listen-port>{{ msServerListener.getPort }}</listen-port>
+            <listen-address>{{ msServerListener.getAddress }}</listen-address>
             <use-nio>true</use-nio>
             <selectors>1</selectors>
             <use-dual-selector>false</use-dual-selector>

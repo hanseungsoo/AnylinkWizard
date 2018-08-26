@@ -55,4 +55,3 @@ alias atail{{ loop.index -}}='tail -f $LOG_HOME/rte/$MS_NAME{{ loop.index -}}/an
 {%- endfor %}
 #alias atail='tail -f $LOG_HOME/rte_$CLUSTER_NAME/anylink_`date +%Y%m%d`.log'
 alias pp='ps -ef | grep java | grep `whoami`'
-
