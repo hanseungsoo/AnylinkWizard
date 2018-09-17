@@ -22,5 +22,18 @@ public class Clusters {
 		this.servers = servers;
 	}
 	
+	public boolean isNull() {
+		if(getName() == null || getServers() == null) {
+			return true;
+		}
+		return false;
+	}
+	
+	public boolean isEmpty() {
+		if(getName().equals("") || getServers().size() == 0) {
+			return true;
+		}
+		return false;
+	}
 	
 }

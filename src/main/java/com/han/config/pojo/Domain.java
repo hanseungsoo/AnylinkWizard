@@ -1,8 +1,6 @@
 package com.han.config.pojo;
 
-import java.io.File;
 import java.util.List;
-
 import com.google.gson.annotations.SerializedName;
 
 public class Domain {
@@ -52,6 +50,21 @@ public class Domain {
 			this.address = address;
 		}
 		
+		public boolean isNull() {
+			if(getAddress() == null || getName() == null || getPort() == null) {
+				return true;
+			}
+			
+			return false;
+		}
+		
+		public boolean isEmpty() {
+			if(getAddress().equals("") || getName().equals("") || getPort().equals("")) {
+				return true;
+			}
+			
+			return false;
+		}
 		
 	}
 	
@@ -159,5 +172,23 @@ public class Domain {
 	public void changeLogHome(String logHome) {
 		setLog_home(getLog_home().replace("log_home", logHome));
 		setRotation_dir(getRotation_dir().replace("log_home", logHome));
+	}
+	
+	public boolean isNull() {
+		if(getJvm_option().equals("") || getName().equals("") || getNode_name().equals("") || getLog_home().equals("") ||
+		   getRotation_dir().equals("") || getUse_web_engine().equals("") || getUse_ejb_engine().equals("") || getUse_jms_engine().equals("")) {
+					return true;
+		}
+		
+		return false;
+	}
+	
+	public boolean isEmpty() {
+		if(getJvm_option() == null || getName() == null || getNode_name() == null || getLog_home() == null ||
+				   getRotation_dir() == null || getUse_web_engine() == null || getUse_ejb_engine() == null || getUse_jms_engine() == null) {
+							return true;
+		}
+		
+		return false;
 	}
 }

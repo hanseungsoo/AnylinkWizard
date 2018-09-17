@@ -20,13 +20,13 @@ import com.han.config.pojo.Domain;
 import com.han.config.pojo.Domain.Listeners;
 import com.han.wizard.AnylinkWizard.AppMain;
 import com.han.config.pojo.Node;
-import com.han.config.pojo.UserPath;
+import com.han.config.pojo.CustomInfo;
 import com.han.config.util.EncryptUtil;
 
 public class FileGenerator {
 	private static Logger logger = LoggerFactory.getLogger(FileGenerator.class);
 	
-	public void runGenerator(List<Node> nodeList,List<Domain> domainList, List<Clusters> clustersList, String key, String path, UserPath userPath, Repository repository) {
+	public void runGenerator(List<Node> nodeList,List<Domain> domainList, List<Clusters> clustersList, String key, String path, CustomInfo userPath, Repository repository) {
 		logger.info( key + " 파일 생성합니다.");
 		logger.info("파일 경로 : " + path);
 		FileOutputStream fos = null;

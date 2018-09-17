@@ -1,6 +1,6 @@
 package com.han.config.pojo;
 
-public class UserPath {
+public class CustomInfo {
 	private String anylinkHome;
 	private String userHome;
 	private String ip;

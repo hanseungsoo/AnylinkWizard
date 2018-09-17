@@ -44,8 +44,8 @@ public class ConfigJsonParser {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			System.exit(1);
-		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
+		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 			System.exit(1);
 		}

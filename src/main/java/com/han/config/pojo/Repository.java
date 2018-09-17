@@ -3,12 +3,11 @@ package com.han.config.pojo;
 import com.google.gson.annotations.SerializedName;
 
 public class Repository {
-	@SerializedName("data-source-id")
+	
 	private String data_source_id;
-	@SerializedName("data-source-class-name")
 	private String data_source_class_name;
-	@SerializedName("data-source-type")
 	private String data_source_type;
+	
 	@SerializedName("vendor")
 	private String vendor;
 	@SerializedName("server-name")
@@ -75,5 +74,25 @@ public class Repository {
 	}
 	public void setPassword(String password) {
 		this.password = password;
+	}
+	
+	public boolean isNull() {
+		if(getData_source_id() == null || getData_source_class_name() == null || getData_source_type() == null
+		|| getVendor() == null || getServer_name() == null || getPort_number() == null || getDatabase_name() == null
+		|| getUser() == null || getPassword() == null) {
+			return true;
+		}
+		
+		return false;
+	}
+	
+	public boolean isEmpty() {
+		if(getData_source_id().equals("") || getData_source_class_name().equals("") || getData_source_type().equals("")
+		|| getVendor().equals("") || getServer_name().equals("") || getPort_number().equals("") || getDatabase_name().equals("")
+		|| getUser().equals("") || getPassword().equals("")) {
+			return true;
+		}
+				
+		return false;
 	}
 }

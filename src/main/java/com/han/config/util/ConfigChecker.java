@@ -17,36 +17,39 @@ import com.han.config.pojo.Domain;
 import com.han.config.pojo.Domain.Listeners;
 import com.han.wizard.AnylinkWizard.AppMain;
 import com.han.config.pojo.Node;
-import com.han.config.pojo.UserPath;
+import com.han.config.pojo.CustomInfo;
 
 public class ConfigChecker {
 	private static Logger logger = LoggerFactory.getLogger(ConfigChecker.class);
 	List<Domain> domainList;
 	List<Clusters> clusterList;
 	List<Node> nodeList;
-	List<Repository> dataSource;
-	UserPath userPath = null;
-	public ConfigChecker(List<Domain> domainList, List<Clusters> clusterList, List<Node> nodeList, UserPath userPath) {
+	List<Repository> repository;
+	CustomInfo customInfo = null;
+	public ConfigChecker(List<Domain> domainList, List<Clusters> clusterList, List<Node> nodeList, List<Repository> repository, CustomInfo customInfo) {
 		this.domainList = domainList;
 		this.clusterList = clusterList;
 		this.nodeList = nodeList;
-		this.userPath = userPath;
+		this.customInfo = customInfo;
+		this.repository = repository;
 	}
 	
 	public boolean node() {
 		try {
-			if(nodeList.size() == 0) {
+			if(nodeList.size() <= 0) {
+				logger.error("Node 설정이 존재하지 않습니다.");
 				return false;
 			}
-			for(int i = 0; i < nodeList.size(); i++) {
-				Node node = nodeList.get(i);
-				
-				if(node.getHost().equals("") || node.getName().equals("") || node.getPort().equals("") || node.getUse_ssl().equals("")) {
+			
+			for(Node node : nodeList) {
+				if(node.isNull() || node.isEmpty()) {
+					logger.error("Node 설정 값이 비어 있습니다. 확인 바랍니다.");
 					return false;
 				}
 				
 				int port = Integer.parseInt(node.getPort());
-				if(!((0 < port) && (port < 665535))) {
+				if(!((0 < port) && (port < 65535))) {
+					logger.error("Node 포트 범위를 확인 바랍니다.");
 					return false;
 				}
 			}
@@ -54,42 +57,45 @@ public class ConfigChecker {
 			e.printStackTrace();
 			return false;
 		}
-		
 		return true;
 	}
 	
 	public boolean domian() {
 		boolean flag = false;
 		try {
-			for(int i = 0; i < domainList.size(); i++) {
-				Domain domain = domainList.get(i);
+			if(domainList.size() <= 0) {
+				logger.error("Domain 설정이 존재하지 않습니다.");
+				return false;
+			}
+			
+			for(Domain domain : domainList) {
 				
-				if(domain.getJvm_option().equals("") || domain.getName().equals("") || domain.getNode_name().equals("") || domain.getLog_home().equals("") ||
-				   domain.getRotation_dir().equals("") || domain.getUse_web_engine().equals("") || domain.getUse_ejb_engine().equals("") || domain.getUse_jms_engine().equals("")) {
+				if(domain.isNull() || domain.isEmpty()) {
+					logger.error("Domain 설정 값이 비어 있습니다. 확인 바랍니다.");
 					return false;
 				}
 				
-				
-				for(int j = 0; j < nodeList.size(); j ++) {
-					Node node = nodeList.get(j);
-					if(domain.getNode_name().equals(node.getName())) {
-						flag = true;
-					}
+				if(nodeList.stream().filter(node -> node.getName().equals(domain.getNode_name())).count() == 0) {
+					logger.error("Domain에 설정된 node-name을 확인 바랍니다.");
+					return false;
 				}
 				
 				List<Listeners> listeners = domain.getListeners();
 				if(listeners.size() <= 0) {
+					logger.error("listener 설정이 존재하지 않습니다.");
 					return false;
 				}
-				for(int x = 0; x < listeners.size(); x++) {
-					Listeners listenersItem = listeners.get(x);
-					if(listenersItem.getAddress().equals("") || listenersItem.getName().equals("") || listenersItem.getPort().equals("")) {
+				for(Listeners listener : listeners) {
+					
+					if(listener.isNull() || listener.isEmpty()) {
+						logger.error("listener 설정 값이 비어 있습니다. 확인 바랍니다.");
 						return false;
 					}
 					
-					int port = Integer.parseInt(listenersItem.getPort());
-					if(!((0 < port) && (port < 665535))) {
-						flag = false;
+					int port = Integer.parseInt(listener.getPort());
+					if(!((0 < port) && (port < 65535))) {
+						logger.error("listener 포트 범위를 확인 바랍니다.");
+						return false;
 					}
 				}
 				
@@ -109,23 +115,20 @@ public class ConfigChecker {
 				logger.info("싱글 설정 입니다.");
 				return true;
 			}
-			for(int i = 0; i < domainList.size(); i++) {
-				msName.add(domainList.get(i).getName());
+			
+			for(Domain domain : domainList) {
+				msName.add(domain.getName());
 			}
-			for(int j = 0; j < clusterList.size(); j++) {
-				Clusters cluster = clusterList.get(j);
-				if(cluster.getName().equals("")) {
+			for(Clusters cluster : clusterList) {
+				
+				if(cluster.isNull() || cluster.isEmpty()) {
+					logger.error("cluster 설정 값이 비어 있습니다. 확인 바랍니다.");
 					return false;
 				}
 				
-				for(int x = 0; x < cluster.getServers().size(); x++) {
-					if(cluster.getServers().size() <= 0 ) {
-						return false;
-					}
-					if(!msName.contains(cluster.getServers().get(x))) {
-						return false;
-					}
-						
+				if(cluster.getServers().stream().filter(nodeName -> msName.contains(nodeName)).count() == 0) {
+					logger.error("cluster에 포함된 서버가 Domain설정에 존재하지 않습니다.");
+					return false;
 				}
 			}
 		}catch(Exception e) {
@@ -136,16 +139,22 @@ public class ConfigChecker {
 		return true;
 	}
 	
-	public boolean dataSource() {
+	public boolean repository() {
 		try{
-			if(dataSource.size() == 0 || dataSource.size() > 1) {
+			if(repository.size() == 0 || repository.size() > 1) {
 				logger.error("설정 파일에  Repository 데이터 소스는 1개 여야합니다.");
 				return false;
 			}
 			
-			Repository source = dataSource.get(0);
+			Repository source = repository.get(0);
+			if(source.isNull() || source.isEmpty()) {
+				logger.error("Repository 설정 값이 비어 있습니다. 확인 바랍니다.");
+				return false;
+			}
+			
 			int port = Integer.parseInt(source.getPort_number());
-			if(!((0 < port) && (port < 665535))) {
+			if(!((0 < port) && (port < 65535))) {
+				logger.error("Repository 포트 범위를 확인 바랍니다.");
 				return false;
 			}
 			if(source.getVendor().equals("others")) {
@@ -161,17 +170,25 @@ public class ConfigChecker {
 	}
 	
 	public boolean schemaFile() {
-		if(!AppMain.adminServerName.equals(userPath.getHostName())) {
+		if(!AppMain.adminServerHostName.equals(customInfo.getHostName())) {
+			logger.info("MS 설정이므로 schemaFile 검사를 진행하지 않습니다.");
 			return true;
 		}
+		
 		File dir = new File("datasource");
 		FileFilter fileFilter = new WildcardFileFilter("create-anylink-*.sql");
 		File[] files = dir.listFiles(fileFilter);
 		if(files.length > 1 || files.length == 0) {
-			logger.error("스키마 파일은 오직 1개여야 합니다.");
+			logger.error("create-anylink 스키마 파일은 오직 1개여야 합니다.");
 			return false;
-		}else {
-			return true;
 		}
+		fileFilter = new WildcardFileFilter("insert-anylink-*.sql");
+		files = dir.listFiles(fileFilter);
+		if(files.length > 1 || files.length == 0) {
+			logger.error("insert-anylink 스키마 파일은 오직 1개여야 합니다.");
+			return false;
+		}
+		
+		return true;
 	}
 }

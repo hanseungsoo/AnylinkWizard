@@ -4,24 +4,23 @@ package com.han.wizard.AnylinkWizard;
 import java.io.File;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.security.DomainLoadStoreParameter;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Date;
 
-import org.jtwig.JtwigModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.han.config.ConfigJsonParser;
+import com.han.config.ConfigOsParser;
 import com.han.config.generator.FileGenerator;
 import com.han.config.generator.SchemaGenerator;
 import com.han.config.pojo.Clusters;
-import com.han.config.pojo.Repository;
 import com.han.config.pojo.Domain;
 import com.han.config.pojo.Node;
-import com.han.config.pojo.UserPath;
+import com.han.config.pojo.Repository;
+import com.han.config.pojo.CustomInfo;
 import com.han.config.util.ConfigChecker;
-import com.han.config.util.EncryptUtil;
 import com.han.config.util.FileMover;
 
 
@@ -30,24 +29,29 @@ public class AppMain {
 	String userHome = null;
 	private static Logger logger = LoggerFactory.getLogger(AppMain.class);
 	ConfigJsonParser configJsonParser = null;
+	ConfigOsParser configOsParser = null;
 	FileGenerator fileGenerator = null;
 	SchemaGenerator schemaGenerator = null;
-	UserPath userPath = null;
+	CustomInfo customInfo = null;
 	ArrayList<Node> nodes = null;
 	ArrayList<Domain> domain = null;
 	ArrayList<Clusters> clusters = null;
 	ArrayList<Repository> repository = null;
 	ArrayList<String> logHome = null;
 	String propertyName = null, patchPath = null; 
-	public static String adminServerName = null;
-	String devPath = "/home/tmax/wizard/fin";
+	public static String adminServerHostName = null;
 	FileMover fileMover = null;
+	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		logger.info("CREATE BY Seungsoo_Han");
 		AppMain appMain = new AppMain();
-		appMain.InitConfig();
-		appMain.ValidChecker();
+		
+		// 기본 초기화 과정
+		appMain.initConfig();
+		
+		// 설정파일 검증 과정
+		appMain.validCheck();
 		appMain.NodesBoot();
 		appMain.ProfileBoot();
 		appMain.DomainBoot();
@@ -55,59 +59,69 @@ public class AppMain {
 		appMain.RepositoryBoot();
 		appMain.PatchBoot();
 		appMain.DisConfigBoot();
+
 	}
-	public void InitConfig() {
+	
+	/*
+	 *  설정파일 읽기 및 환경설정 읽기
+	 */
+	public void initConfig() {
 		logger.info("초기화 과정 시작");
+		
+		// 설정파일 경로 읽기
 		if(AppMain.dev) {
 			this.propertyName = "/home/tmax/wizard/setting.json";
 		}else {
 			this.propertyName = System.getProperty("setting.config.json");
 		}
+		
+		// 필요 객체 생성
 		configJsonParser = new ConfigJsonParser(propertyName);
+		configOsParser = new ConfigOsParser();
+		fileGenerator = new FileGenerator();
+		schemaGenerator = new SchemaGenerator();
+		fileMover = new FileMover();
+		
+		//설정파일 파싱
 		nodes = configJsonParser.load("nodes");
 		domain = configJsonParser.load("domain");
 		clusters = configJsonParser.load("clusters");
 		logHome = configJsonParser.load("log_home");
 		repository = configJsonParser.load("Repository");
 		
-		userPath = new UserPath();
-		userPath.setAnylinkHome(System.getProperty("anylink.home"));
-		userPath.setUserHome(System.getProperty("user.home"));
-		userPath.setPassWord(System.getProperty("jeus.passwd"));
-		userPath.setDoaminName(System.getProperty("domain.name"));
-		InetAddress local = null;
-		try {
-			local = InetAddress.getLocalHost();
-		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			System.exit(1);
-		}
-		userPath.setIp(local.getHostAddress());
-		userPath.setHostName(local.getHostName());
-		userPath.setLogHome(logHome.get(0));
-		logger.info(userPath.toString());
 		
-		fileGenerator = new FileGenerator();
-		schemaGenerator = new SchemaGenerator();
-		fileMover = new FileMover();
+		// 커스텀 설정 읽기
+		customInfo = new CustomInfo();
+		customInfo.setAnylinkHome(configOsParser.getEnv("ANYLINK_HOME"));
+		customInfo.setUserHome(configOsParser.getProp("user.home"));
+		customInfo.setPassWord(configOsParser.getProp("jeus.passwd"));
+		customInfo.setDoaminName(configOsParser.getProp("domain.name"));
+		customInfo.setIp(configOsParser.getIp());
+		customInfo.setHostName(configOsParser.getHostName());
+		customInfo.setLogHome(logHome.get(0));
+		
+		// 커스텀 설정 출력
+		logger.info(customInfo.toString());
+		
+		// DAS 호스트네임 찾기 
 		for(int i = 0; i < domain.size(); i++) {
 			Domain ms = domain.get(i);
 			if(ms.getName().equals("adminServer")){
-				adminServerName = ms.getNode_name();
+				adminServerHostName = ms.getNode_name();
 				break;
 			}		
 		}
-		
-		
-
+		logger.info("DAS 지정 서버 호스트이름 : " + adminServerHostName);
 	}
 	
-	public void ValidChecker() {
+	/*
+	 * 설정파일 검증
+	 */
+	public void validCheck() {
 		logger.info("설정 검증 시작");
-		ConfigChecker configChecker = new ConfigChecker(domain, clusters, nodes, userPath);
+		ConfigChecker configChecker = new ConfigChecker(domain, clusters, nodes, repository, customInfo);
 		if(!configChecker.node()) {
-			logger.error("node 설정파일 검증 실패");
+			logger.error("Node 설정파일 검증 실패");
 			System.exit(1);
 		}
 		if(!configChecker.domian()) {
@@ -118,8 +132,12 @@ public class AppMain {
 			logger.error("clusters 설정파일 검증 실패");
 			System.exit(1);
 		}
+		if(!configChecker.repository()) {
+			logger.error("Repository 설정파일 검증 실패");
+			System.exit(1);
+		}
 		if(!configChecker.schemaFile()) {
-			logger.error("schema 생성 파일 확인 실패");
+			logger.error("schema파일 확인 실패");
 			System.exit(1);
 		}
 		
@@ -160,7 +178,7 @@ public class AppMain {
 		logger.info("Profile 과정 시작");
 		
 		
-		if(adminServerName.equals(userPath.getHostName())) {
+		if(adminServerHostName.equals(userPath.getHostName())) {
 			logger.info("DAS Profile 생성");
 			fileGenerator.runGenerator(nodes, domain, clusters, "dasProfile", fileName, userPath, null);
 		}else {
