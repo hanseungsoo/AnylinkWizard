@@ -48,14 +48,16 @@
 	<dependency>
 	    <groupId>ch.qos.logback</groupId>
 	    <artifactId>logback-classic</artifactId>
-	    <version>1.2.3</version> <!--버전은 상황에 따라 -->
+	    <version>1.2.3</version> <!--踰꾩쟾�� �긽�솴�뿉 �뵲�씪 -->
 	</dependency>
 	<!-- https://mvnrepository.com/artifact/com.googlecode.json-simple/json-simple -->
-	<dependency>
-	    <groupId>com.googlecode.json-simple</groupId>
-	    <artifactId>json-simple</artifactId>
-	    <version>1.1.1</version>
-	</dependency>
+<!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
+<dependency>
+    <groupId>com.google.code.gson</groupId>
+    <artifactId>gson</artifactId>
+    <version>2.8.5</version>
+</dependency>
+
 	<dependency>
     <groupId>commons-io</groupId>
     <artifactId>commons-io</artifactId>
@@ -66,5 +68,11 @@
         <artifactId>jtwig-core</artifactId>
         <version>5.87.0.RELEASE</version>
     </dependency>
+<dependency>
+ 	<groupId>org.xeustechnologies</groupId>
+	<artifactId>jcl-core</artifactId> 
+	<version>2.8</version>
+  </dependency>
+
   </dependencies>
 </project>

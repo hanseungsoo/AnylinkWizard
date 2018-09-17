@@ -1,155 +1,100 @@
 package com.han.config;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
 
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
+import com.han.config.pojo.Clusters;
+import com.han.config.pojo.Repository;
+import com.han.config.pojo.Domain;
+import com.han.config.pojo.Node;
 import com.han.wizard.AnylinkWizard.AppMain;
 
 public class ConfigJsonParser {
-	
 	private static Logger logger = LoggerFactory.getLogger(ConfigJsonParser.class);
 	private String propertyName;
 	
-	public ConfigJsonParser() {
-		if(AppMain.dev) {
-			this.propertyName = "C:\\Users\\Han\\Desktop\\소스\\tmaxProBus\\workspace\\config\\setting.json";
-		}else {
-			this.propertyName = System.getProperty("setting.config.json");
-		}
+	public ConfigJsonParser(String propertyName) {
+		this.propertyName = propertyName;
 	}
-	public JSONObject getJsonFile() {
-		File file = null;
+	@SuppressWarnings("unchecked")
+	public <T> ArrayList<T> load(String key) {
 		logger.info("설정파일을 로딩합니다.");
 		logger.info("파일 경로 : " + propertyName);
-		JSONObject jsonObject = null;
+		JsonParser jsonParser = new JsonParser();
+		JsonObject configObject = null;
 		try {
-			file = new File(propertyName);
-			JSONParser jsonParser = new JSONParser();
-			jsonObject = (JSONObject) jsonParser.parse(new FileReader(file));
-		}catch(NullPointerException nullEx){
-			nullEx.printStackTrace();
+			configObject = (JsonObject)jsonParser.parse(new FileReader(propertyName));
+		} catch (JsonIOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			System.exit(1);
+		} catch (JsonSyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			System.exit(1);
+			// TODO Auto-generated catch block
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.exit(1);
 		}
-		return jsonObject;
-	}
-	
-	public JSONArray load(String key) {
-		logger.info(key + " 파싱을 시작합니다.");
-		JSONObject jsonObject = null;
+		logger.info(key + " 설정 파싱합니다.");
+		ArrayList<T> list = new ArrayList<T>();
+		if(!key.equals("log_home")) {
+			JsonArray configArray = (JsonArray)configObject.get(key).getAsJsonArray();
+			Iterator<JsonElement> iterator = configArray.iterator();
+			while(iterator.hasNext()){
+	            JsonElement json = (JsonElement)iterator.next();
+	            
+	            T object = null;
+	            if(key.equals("nodes")) {
+	            	object = (T) new Gson().fromJson(json, Node.class);
+	            }else if(key.equals("domain")){
+	            	object = (T) new Gson().fromJson(json, Domain.class);
+	            	Domain tmpDomain = (Domain) object;
+	            	String logHome = (String)configObject.get("log_home").getAsString();
+	            	tmpDomain.changeLogHome(logHome);
+	            }else if(key.equals("clusters")) {
+	            	object = (T) new Gson().fromJson(json, Clusters.class);
+	            }else if(key.equals("Repository")) {
+	            	object = (T) new Gson().fromJson(json, Repository.class);
+	            	Repository tmpRepo = (Repository)object;
+	            	if(tmpRepo.getVendor().toLowerCase().equals("tibero")) {
+	            		tmpRepo.setData_source_class_name("com.tmax.tibero.jdbc.ext.TbConnectionPoolDataSource");
+	            		tmpRepo.setData_source_id("LogAdapter_DataSource");
+	            		tmpRepo.setData_source_type("ConnectionPoolDataSource");
+	            	}else if(tmpRepo.getVendor().toLowerCase().equals("oracle")) {
+	            		tmpRepo.setData_source_class_name("oracle.jdbc.pool.OracleConnectionPoolDataSource");
+	            		tmpRepo.setData_source_id("LogAdapter_DataSource");
+	            		tmpRepo.setData_source_type("ConnectionPoolDataSource");
+	            	}else if(tmpRepo.getVendor().toLowerCase().equals("others")) {
+	            		tmpRepo.setData_source_class_name("org.mariadb.jdbc.MariaDbDataSource");
+	            		tmpRepo.setData_source_id("LogAdapter_DataSource");
+	            		tmpRepo.setData_source_type("ConnectionPoolDataSource");
+	            	}else {
+	            		logger.error("해당 DataBase는 지원하지 않습니다.");
+	            		System.exit(1);
+	            	}
+	            }
+	            list.add(object);
+	        }
+		}else {
+			String logHome = (String)configObject.get("log_home").getAsString();
+			list.add((T)logHome);
+		}
 		
-		jsonObject = getJsonFile();
-		if(jsonObject == null) {
-			logger.info(key + " 설정 파일 로딩 실패");
-			System.exit(1);
-		}
-		if(!validChecker(key, jsonObject)) {
-			logger.info(key + " 설정 파일이 잘못 구성되어 있습니다.");
-			System.exit(1);
-		}
-		return (JSONArray) jsonObject.get(key);
-	}
-
-	public Boolean validChecker(String key,JSONObject jsonObject) {
-		if( key.equals("nodes")) {
-			JSONArray jsonarray = (JSONArray) jsonObject.get(key);
-			for (int i = 0; i < jsonarray.size(); i++) {
-				JSONObject item = (JSONObject) jsonarray.get(i);
-				if(item.containsKey("name") && item.containsKey("host") && 
-					item.containsKey("port") && item.containsKey("use-ssl") ) {
-				}else {
-					return false;
-				}
-			}
-			return true;
-		}else if(key.equals("domain")) {
-			JSONArray jsonarray = (JSONArray) jsonObject.get(key);
-			JSONArray nodeArray = load("nodes");
-			for (int i = 0; i < jsonarray.size(); i++) {
-				JSONObject item = (JSONObject) jsonarray.get(i);
-				if(item.containsKey("name") && item.containsKey("log-home") && (item.containsKey("listeners") && item.containsKey("jvm-option") && item.containsKey("rotation-dir") && item.containsKey("node-name"))) {
-					if(item.get("log-home").equals("")) {
-						//item.replace("log-home", "", null);
-						item.remove("log-home");
-					}
-					
-					int flag = 0;
-					for(int y = 0; y < nodeArray.size(); y++) {
-						JSONObject nodeObj = (JSONObject)nodeArray.get(y);
-						if(((String)item.get("node-name")).equals((String)nodeObj.get("name"))) {
-							flag++;
-						}
-					}
-					if(flag != 1) {
-						logger.error("NodeManager is Not Matched");
-						return false;
-					}
-					
-					
-					JSONArray listeners = (JSONArray) item.get("listeners");
-					for(int index = 0; index < listeners.size(); index++) {
-						JSONObject item2 = (JSONObject) listeners.get(index);
-						if(item2.containsKey("name") && item2.containsKey("port") && item2.containsKey("address")) {
-						}else {
-							logger.error("Listeners config is Not Valid");
-							return false;
-						}
-					}	
-				}else {
-					logger.error("Server config is Not Valid");
-					return false;
-				}
-			}
-			return true;
-		}else if(key.equals("clusters")){
-			JSONArray jsonarray = (JSONArray) jsonObject.get(key);
-			for (int i = 0; i < jsonarray.size(); i++) {
-				JSONObject item1 = (JSONObject) jsonarray.get(i);
-				if(item1.containsKey("name") && item1.containsKey("servers")) {
-					JSONArray serverNames1 = (JSONArray)item1.get("servers");
-					String clusterName1 = (String) item1.get("name");
-					
-					for(int index1 = 0; index1 < jsonarray.size(); index1++) {
-						JSONObject item2 = (JSONObject) jsonarray.get(index1);
-						String clusterName2 = (String) item2.get("name");
-						JSONArray serverNames2 = (JSONArray)item2.get("servers");
-						
-						if(!clusterName1.equals(clusterName2)) {
-							for(int x = 0; x < serverNames1.size(); x++) {
-								String name1 = (String) serverNames1.get(x);
-								for(int y = 0; y < serverNames1.size(); y++) {
-									String name2 = (String) serverNames2.get(y);
-									if(name1.equals(name2)) {
-										return false;
-									}
-								}
-							}
-						}
-					}
-					
-				}else {
-					return false;
-				}
-			}
-			return true;
-		}
-		return false;
+		return list;
 	}
 }
 

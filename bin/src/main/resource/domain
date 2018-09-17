@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<domain xmlns="http://www.tmaxsoft.com/xml/ns/jeus" version="7.0">
+    <production-mode>@@PRODUCTIONMODE@@</production-mode>
+    <id>@@ID@@</id>
+    <security-manager>
+        <default-application-domain>SYSTEM_DOMAIN</default-application-domain>
+        <security-domains>
+            <security-domain>
+                <name>SYSTEM_DOMAIN</name>
+                <authentication>
+                    <repository-service>
+                        <xml-file-repository>
+                            <config-file>
+<filename>accounts.xml</filename>
+<filepath>{{ userPath.getAnylinkHome }}/domain/{{ userPath.getDoaminName }}config/security/</filepath>
+                            </config-file>
+                        </xml-file-repository>
+                    </repository-service>
+                    <custom-authentication-service>
+                        <classname>jeus.security.impl.atn.DefaultAuthenticationService</classname>
+                    </custom-authentication-service>
+                </authentication>
+                <authorization>
+                    <repository-service>
+                        <xml-file-repository>
+                            <config-file>
+<filename>policies.xml</filename>
+<filepath>{{ userPath.getAnylinkHome }}/domain/{{ userPath.getDoaminName }}config/security/</filepath>
+                            </config-file>
+                        </xml-file-repository>
+                    </repository-service>
+                    <custom-authorization-service>
+                        <classname>jeus.security.impl.azn.DefaultAuthorizationService</classname>
+                    </custom-authorization-service>
+                </authorization>
+                <credential-verification>
+                    <default-credential-verification-service>
+                        <password-verification></password-verification>
+                    </default-credential-verification-service>
+                </credential-verification>
+            </security-domain>
+        </security-domains>
+    </security-manager>
+    <admin-server-name>adminServer</admin-server-name>
+    <group-communication-info>
+        <heartbeat-address>230.30.1.1</heartbeat-address>
+        <heartbeat-port>3030</heartbeat-port>
+        <use-virtual-multicast>false</use-virtual-multicast>
+    </group-communication-info>
+    <gms>
+        <failure-detection-tries>1</failure-detection-tries>
+        <failure-detection-timeout>5000</failure-detection-timeout>
+        <failure-verification-timeout>5000</failure-verification-timeout>
+        <discovery-timeout>5000</discovery-timeout>
+    </gms>
+	<servers>
+	{% include "classpath:/server" ignore missing %}
+	</servers>
+	{%- if (length(clustersList) > 0) %}
+    <clusters>
+    {%- for cluster in clustersList %}
+        <cluster>
+            <name>{{ cluster.getName }}</name>
+            <servers>
+                {%- for serverName in cluster.getServers %}
+                <server-name>{{ serverName }}</server-name>
+                {%- endfor %}
+            </servers>
+            <session-router-config>
+                <reserved-thread-num>0</reserved-thread-num>
+                <connect-timeout>5000</connect-timeout>
+                <read-timeout>20000</read-timeout>
+                <backup-level>set</backup-level>
+                <failover-delay>600</failover-delay>
+                <restart-delay>600</restart-delay>
+                <file-db>
+                    <passivation-timeout>-1</passivation-timeout>
+                    <min-hole>100</min-hole>
+                    <packing-rate>0.5</packing-rate>
+                </file-db>
+            </session-router-config>
+            <use-MEJB>false</use-MEJB>
+            <class-ftp>false</class-ftp>
+        </cluster>
+    {%- endfor %}
+    </clusters>
+    {%- endif %}
+    {%- if (length(clustersList) > 0) %}
+    <lifecycle-invocation>
+        <class-name>com.tmax.anylink.runtime.RTELifecycleListener</class-name>
+        <invocation id="0">
+            <invocation-method>
+                <method-name>init</method-name>
+            </invocation-method>
+            <invocation-type>BOOT</invocation-type>
+        </invocation>
+        <invocation id="1">
+            <invocation-method>
+                <method-name>startup</method-name>
+            </invocation-method>
+            <invocation-type>BEFORE_DEPLOY</invocation-type>
+        </invocation>
+        <invocation id="2">
+            <invocation-method>
+                <method-name>ready</method-name>
+            </invocation-method>
+            <invocation-type>AFTER_DEPLOY</invocation-type>
+        </invocation>
+        <invocation id="3">
+            <invocation-method>
+                <method-name>shutdown</method-name>
+            </invocation-method>
+            <invocation-type>BEFORE_UNDEPLOY</invocation-type>
+        </invocation>
+        <invocation id="4">
+            <invocation-method>
+                <method-name>destroy</method-name>
+            </invocation-method>
+            <invocation-type>AFTER_UNDEPLOY</invocation-type>
+        </invocation>
+    </lifecycle-invocation>
+    {%- endif %}
+    <deployed-applications>
+        <deployed-application>
+            <id>anylink-admin</id>
+            <path>{{ userPath.getAnylinkHome }}/domain/{{ userPath.getDoaminName }}.applications/anylink-admin/anylink-admin.war</path>
+            <type>WAR</type>
+            <targets>
+                <server>
+                    <name>adminServer</name>
+                </server>
+            </targets>
+            <options>
+                <classloading>ISOLATED</classloading>
+                <fast-deploy>false</fast-deploy>
+                <keep-generated>false</keep-generated>
+                <shared>false</shared>
+            </options>
+        </deployed-application>
+        <deployed-application>
+            <id>anylink-http-servlet</id>
+            <path>{{ userPath.getAnylinkHome }}/domain/{{ userPath.getDoaminName }}.applications/anylink-http-servlet/AnyLink_Http_Servlet.war</path>
+            <type>WAR</type>
+            <targets>
+            	{%- if (length(clustersList) > 0) %}
+                <cluster>
+                	{%- for cluster in clustersList %}
+                    <name>{{ cluster.getName }}</name>
+                    {%- endfor %}
+                </cluster>
+                {%- endif %}
+                {%- if (length(msServers) > 0) %}
+                <server>
+                	{%- for msServer in msServers %}
+                    <name>{{ msServer.getName }}</name>
+                    {%- endfor %}
+                </server>
+                {%- endif %}
+            </targets>
+            <options>
+                <classloading>ISOLATED</classloading>
+                <fast-deploy>false</fast-deploy>
+                <keep-generated>false</keep-generated>
+                <shared>false</shared>
+            </options>
+        </deployed-application>
+    </deployed-applications>
+    <resources>
+        <data-source>
+            <database>
+                <data-source-id>{{ dataSource.getData_source_id }}</data-source-id>
+                <export-name>{{ dataSource.getData_source_id }}</export-name>
+                <data-source-class-name>{{ dataSource.getData_source_class_name }}</data-source-class-name>
+                <data-source-type>{{ dataSource.getData_source_type }}</data-source-type>
+                <vendor>{{ dataSource.getVendor }}</vendor>
+                <server-name>{{ dataSource.getServer_name }}</server-name>
+                <port-number>{{ dataSource.getPort_number }}</port-number>
+                <database-name>{{ dataSource.getDatabase_name }}</database-name>
+                <user>{{ dataSource.getUser }}</user>
+                <password>{{ dataSource.getPassword }}</password>
+                <login-timeout>0</login-timeout>
+                <auto-commit>DRIVER</auto-commit>
+                <stmt-query-timeout>0</stmt-query-timeout>
+                <pool-destroy-timeout>10000</pool-destroy-timeout>
+                <property>
+                    <name>driverType</name>
+                    <type>java.lang.String</type>
+                    <value>thin</value>
+                </property>
+                <support-xa-emulation>false</support-xa-emulation>
+                <connection-pool>
+                    <pooling>
+                        <min>2</min>
+                        <max>30</max>
+                        <step>1</step>
+                        <period>3600000</period>
+                    </pooling>
+                    <wait-free-connection>
+                        <enable-wait>false</enable-wait>
+                        <wait-time>10000</wait-time>
+                    </wait-free-connection>
+                    <max-use-count>0</max-use-count>
+                    <dba-timeout>-1</dba-timeout>
+                    <stmt-caching-size>-1</stmt-caching-size>
+                    <stmt-fetch-size>-1</stmt-fetch-size>
+                    <connection-trace>
+                        <enabled>false</enabled>
+                        <get-connection-trace>true</get-connection-trace>
+                        <auto-commit-trace>false</auto-commit-trace>
+                    </connection-trace>
+                    <use-sql-trace>false</use-sql-trace>
+                    <keep-connection-handle-open>false</keep-connection-handle-open>
+                </connection-pool>
+            </database>
+        </data-source>
+    </resources>
+</domain>

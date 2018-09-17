@@ -1,0 +1,116 @@
+{
+	"nodes" : [
+		{
+			"name" : "tmaxsoft",
+			"host" : "192.168.56.101",
+			"port" : "7730",
+			"use-ssl" : "false"
+		},
+		{
+			"name" : "tmaxsoft2",
+			"host" : "192.168.56.102",
+			"port" : "7730",
+			"use-ssl" : "false"
+		}
+	],
+	"log_home" : "/home/tmax/anylink7/logs",
+	"domain" : [
+		{
+			"name" : "adminServer",	
+			"node-name" : "tmaxsoft",
+			"log-home" : "",
+			"listeners" : [
+				{
+					"name" : "BASE",
+					"port" : "9736",
+					"address" : "tmaxsoft"
+				},
+				{
+					"name" : "http-server",
+					"port" : "8808",
+					"address" : "0.0.0.0"
+				},
+				{
+					"name" : "jms-internal",
+					"port" : "9941",
+					"address" : "tmaxsoft"
+				}
+			],
+			"jvm-option" : "-Xmx1024m -XX:MaxPermSize=512m",
+			"rotation-dir" : "log_home/jeus/adminServer",
+			"use-jms-engine" : "false",
+			"use-ejb-engine" : "false",
+			"use-web-engine" : "true"
+		},
+		{
+			"name" : "cluster_server1",
+			"node-name" : "tmaxsoft",
+			"log-home" : "log_home/jeus",
+			"listeners" : [
+				{
+					"name" : "BASE",
+					"port" : 	"9936",
+					"address" : "tmaxsoft"
+				},
+				{
+					"name" : "http-server",
+					"port" : "8088",
+					"address" : "0.0.0.0"
+				},
+				{
+					"name" : "jms-internal",
+					"port" : "9741",
+					"address" : "tmaxsoft"
+				}
+			],
+			"jvm-option" : "-Xmx1024m -XX:MaxPermSize=512m",
+			"rotation-dir" : "log_home/jeus/cluster_server1",
+			"use-jms-engine" : "false",
+			"use-ejb-engine" : "false",
+			"use-web-engine" : "true"
+		},
+		{
+			"name" : "cluster_server2",
+			"node-name" : "tmaxsoft2",
+			"log-home" : "log_home/jeus",
+			"listeners" : [
+				{
+					"name" : "BASE",
+					"port" : 	"9936",
+					"address" : "tmaxsoft2"
+				},
+				{
+					"name" : "http-server",
+					"port" : "8088",
+					"address" : "0.0.0.0"
+				},
+				{	
+					"name" : "jms-internal",
+					"port" : "9741",
+					"address" : "tmaxsoft2"
+				}
+			],
+			"jvm-option" : "-Xmx1024m -XX:MaxPermSize=512m",
+			"rotation-dir" : "log_home/cluster_server2",
+			"use-jms-engine" : "false",
+			"use-ejb-engine" : "false",
+			"use-web-engine" : "true"
+		}
+	],
+	"Repository" : [
+		{
+			"vendor" : "tibero",
+			"server-name" : "192.168.56.101",			
+			"port-number" : "8629",
+			"database-name" : "tibero",
+			"user" : "anylink",
+			"password" : "anylink"
+		}
+	],
+	"clusters" : [
+		{
+			"name" : "ANYLINK_CLS",
+			"servers" : [ "cluster_server1" , "cluster_server2" ]
+		}
+	]
+}

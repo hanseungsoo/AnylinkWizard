@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ns0:bizSystemInfo xmlns:ns2="http://www.tmaxsoft.com/schemas/anylink/reliableQueue/" xmlns:ns1="http://www.tmaxsoft.com/schemas/anylink/common/" xmlns:ns3="http://www.tmaxsoft.com/schemas/anylink/serverPlugin/" xmlns:ns0="http://www.tmaxsoft.com/schemas/anylink/">
+
+<ns0:bizSystemDefaultThreadPoolId>bizSystemDefaultThreadPool</ns0:bizSystemDefaultThreadPoolId>
+<ns0:systemLogging>
+      <ns0:logLevel>FINEST</ns0:logLevel>
+</ns0:systemLogging>
+<ns0:nodeList>
+      <ns0:node>
+         <ns0:name>{{ msName }}</ns0:name>
+      </ns0:node>
+   </ns0:nodeList>
+</ns0:bizSystemInfo>

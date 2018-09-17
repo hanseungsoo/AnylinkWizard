@@ -1,0 +1,3 @@
+{% for msName in msList %}
+export MS_NAME{{ loop.index -}}={{ msName -}}
+{% endfor %}
