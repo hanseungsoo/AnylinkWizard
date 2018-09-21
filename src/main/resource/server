@@ -24,7 +24,7 @@
         <jvm-option>{{ adminServer.getJvm_option }}</jvm-option>
     </jvm-config>
     <user-interceptor>
-        <boot-classloader-append-class-path>{{ userPath.getAnylinkHome }}/lib/anylink/anylink-system-logger.jar:{{ userPath.getAnylinkHome }}/lib/anylink/anylink-moxy.jar</boot-classloader-append-class-path>
+        <boot-classloader-append-class-path>{{ customInfo.getAnylinkHome }}/lib/anylink/anylink-system-logger.jar:{{ customInfo.getAnylinkHome }}/lib/anylink/anylink-moxy.jar</boot-classloader-append-class-path>
     </user-interceptor>
     <system-logging>
         <name>jeus</name>
@@ -58,7 +58,7 @@
         <commit-timeout>240000</commit-timeout>
         <recovery-timeout>120000</recovery-timeout>
         <uncompleted-timeout>86400000</uncompleted-timeout>
-        <tx-log-dir>{{ userPath.getAnylinkHome }}/.workspace/tmlog</tx-log-dir>
+        <tx-log-dir>{{ customInfo.getAnylinkHome }}/.workspace/tmlog</tx-log-dir>
         <automatic-recovery>false</automatic-recovery>
     </tm-config>
     <naming-server>
@@ -292,10 +292,10 @@
     </jms-resource>
 	{%- endif %}
     <data-sources>
-        <data-source>{{ dataSource.getData_source_id }}</data-source>
+        <data-source>{{ repository.getData_source_id }}</data-source>
     </data-sources>
 </server>
-{%- for msServer in msServerList %}
+{%- for msServer in msServers %}
 <server>
     <name>{{ msServer.getName }}</name>
     {%- if msServer.getLog_home != "" %}
@@ -323,7 +323,7 @@
         <jvm-option>{{ msServer.getJvm_option }}</jvm-option>
     </jvm-config>
     <user-interceptor>
-        <boot-classloader-append-class-path>{{ userPath.getAnylinkHome }}/lib/anylink/anylink-system-logger.jar:{{ userPath.getAnylinkHome }}/lib/anylink/anylink-moxy.jar</boot-classloader-append-class-path>
+        <boot-classloader-append-class-path>{{ customInfo.getAnylinkHome }}/lib/anylink/anylink-system-logger.jar:{{ customInfo.getAnylinkHome }}/lib/anylink/anylink-moxy.jar</boot-classloader-append-class-path>
     </user-interceptor>
     <system-logging>
         <name>jeus</name>
@@ -357,7 +357,7 @@
         <commit-timeout>240000</commit-timeout>
         <recovery-timeout>120000</recovery-timeout>
         <uncompleted-timeout>86400000</uncompleted-timeout>
-        <tx-log-dir>{{ userPath.getAnylinkHome }}/.workspace/tmlog</tx-log-dir>
+        <tx-log-dir>{{ customInfo.getAnylinkHome }}/.workspace/tmlog</tx-log-dir>
         <automatic-recovery>false</automatic-recovery>
     </tm-config>
     <naming-server>
@@ -618,7 +618,7 @@
     </jms-resource>
 	{%- endif %}
     <data-sources>
-        <data-source>{{ dataSource.getData_source_id }}</data-source>
+        <data-source>{{ repository.getData_source_id }}</data-source>
     </data-sources>
 </server>
 {%- endfor %}

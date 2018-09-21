@@ -1,34 +1,34 @@
-export ANYLINK_IP={{ userPath.getIp }}
+export ANYLINK_IP={{ customInfo.getIp }}
 export JEUS_ID=administrator
-export JEUS_PWD={{ userPath.getPassWord }}
-export DOMAIN_NAME={{ userPath.getDoaminName }}
+export JEUS_PWD={{ customInfo.getPassWord }}
+export DOMAIN_NAME={{ customInfo.getDoaminName }}
 
-{%- for msServer in msServerList %}
-export MS_NAME{{ loop.index -}}={{ msServer.getName -}}
+{%- for msName in msNames %}
+export MS_NAME{{ loop.index -}}={{ msName -}}
 {%- endfor %}
 {%- for adminServerlistener in adminServer.getListeners %}
 {%- if (adminServerlistener.getName == 'BASE') %}
 export DAS_PORT={{ adminServerlistener.getPort }}
 {%- endif %}
 {%- endfor %}
-export NM_PORT={{ node.getPort }}
+export NM_PORT={{ dasNodePort }}
 
-{%- for msServerlistener in msServerListeners %}
-export MS_PORT{{ loop.index -}}={{ msServerlistener.getPort -}}
+{%- for BasePort in msBasePorts %}
+export MS_PORT{{ loop.index -}}={{ BasePort -}}
 {%- endfor %}
-export ANYLINK_HOME={{ userPath.getAnylinkHome }}
-export LOG_HOME={{ userPath.getLogHome }}
+export ANYLINK_HOME={{ customInfo.getAnylinkHome }}
+export LOG_HOME={{ customInfo.getLogHome }}
 
 alias nmboot='nohup startNodeManager > $LOG_HOME/nodemanager/nm.log &'
 alias nmdown='stopNodeManager -host $ANYLINK_IP -port $NM_PORT'
 alias dsa='jeusadmin -host $ANYLINK_IP -port $DAS_PORT -u $JEUS_ID -p $JEUS_PWD'
-{%- for msServer in msServerList %}
+{%- for msName in msNames %}
 alias msa{{ loop.index -}}='jeusadmin -host $ANYLINK_IP -port $MS_PORT{{ loop.index }} -u $JEUS_ID -p $JEUS_PWD'
 {%- endfor %}
 alias dsboot='startDomainAdminServer -domain $DOMAIN_NAME -u $JEUS_ID -p $JEUS_PWD'
 alias dsdown='stopServer -host $ANYLINK_IP:$DAS_PORT -u $JEUS_ID -p $JEUS_PWD'
 
-{%- for msServer in msServerList %}
+{%- for msName in msNames %}
 alias msboot{{ loop.index -}}='startManagedServer -dasurl $ANYLINK_IP:$DAS_PORT -domain $DOMAIN_NAME -server $MS_NAME{{ loop.index }} -u $JEUS_ID -p $JEUS_PWD'
 alias msdown{{ loop.index -}}='stopServer -host $ANYLINK_IP:$MS_PORT{{ loop.index }} -u $JEUS_ID -p $JEUS_PWD'
 {%- endfor %}
@@ -44,13 +44,13 @@ alias dlog='cd $LOG_HOME/dis'
 alias jlogd='cd $LOG_HOME/jeus/adminServer'
 alias jtaild='tail -f $LOG_HOME/jeus/adminServer/JeusServer.log'
 
-{%- for msServer in msServerList %}
+{%- for msName in msNames %}
 alias jlog{{ loop.index -}}='cd $LOG_HOME/jeus/$MS_NAME{{ loop.index -}}'
 alias jtail{{ loop.index -}}='tail -f $LOG_HOME/jeus/$MS_NAME{{ loop.index -}}/JeusServer.log'
 {%- endfor %}
 alias dtail='tail -f $LOG_HOME/dis/dis_`date +%Y%m%d`.log'
 
-{%- for msServer in msServerList %}
+{%- for msName in msNames %}
 alias atail{{ loop.index -}}='tail -f $LOG_HOME/rte/$MS_NAME{{ loop.index -}}/anylink_`date +%Y%m%d`.log'
 {%- endfor %}
 #alias atail='tail -f $LOG_HOME/rte_$CLUSTER_NAME/anylink_`date +%Y%m%d`.log'

@@ -52,11 +52,23 @@ public class AppMain {
 		
 		// 설정파일 검증 과정
 		appMain.validCheck();
+		
+		// node.xml 및 nodeManager 생성
 		appMain.NodesBoot();
+		
+		// 기본 환결 설정파일 생성, .profile
 		appMain.ProfileBoot();
+		
+		// domain.xml 생성
 		appMain.DomainBoot();
+		
+		// 각 ms별 BizSystem 파일 생성
 		appMain.BizSystemBoot();
+		
+		// 레파지토리 DB에 스키마 생성
 		appMain.RepositoryBoot();
+		
+		// 애니링크 패치 및 제우스 패치
 		appMain.PatchBoot();
 		appMain.DisConfigBoot();
 
@@ -149,41 +161,42 @@ public class AppMain {
 		if(AppMain.dev) {
 			fileName = "devPath/nodes_test.xml";
 		}else {
-			fileName = userPath.getAnylinkHome() + File.separator + "domains" + File.separator + "nodes.xml";
+			fileName = customInfo.getAnylinkHome() + File.separator + "domains" + File.separator + "nodes.xml";
 		}
 		logger.info("Nodes 과정 시작");
-		fileGenerator.runGenerator(nodes, domain, clusters, "nodes", fileName, userPath, null);
+		fileGenerator.runGenerator(nodes, domain, clusters, "nodes", fileName, customInfo, null);
 		
 		logger.info("nodeManager 과정 시작");
 		if(AppMain.dev) {
 			fileName = "devPath/jeusnm.properties";
 		}else {
-			fileName = userPath.getAnylinkHome() + File.separator + "nodemanager" + File.separator + "jeusnm.properties";
+			fileName = customInfo.getAnylinkHome() + File.separator + "nodemanager" + File.separator + "jeusnm.properties";
 		}
-		fileGenerator.runGenerator(nodes, domain, clusters, "nodeManager", fileName, userPath, null);
+		fileGenerator.runGenerator(nodes, domain, clusters, "nodeManager", fileName, customInfo, null);
 	}
 	
 	public void ProfileBoot() {
 		String fileName = null;
-		Domain adminServer = null;
 		if(AppMain.dev) {
 			fileName = "devPath/profile";
 		}else {
-			fileName = userPath.getUserHome() + File.separator + ".bash_profile";
+			
+			// .bash_profile 인지 .profile인지 판별
+			fileName = customInfo.getUserHome() + File.separator + ".bash_profile";
 			File tmpFile = new File(fileName);
 			if(!tmpFile.exists()) {
-				fileName = userPath.getUserHome() + File.separator + ".profile";
+				fileName = customInfo.getUserHome() + File.separator + ".profile";
 			}
 		}
+		
 		logger.info("Profile 과정 시작");
 		
-		
-		if(adminServerHostName.equals(userPath.getHostName())) {
+		if(adminServerHostName.equals(customInfo.getHostName())) {
 			logger.info("DAS Profile 생성");
-			fileGenerator.runGenerator(nodes, domain, clusters, "dasProfile", fileName, userPath, null);
+			fileGenerator.runGenerator(nodes, domain, clusters, "dasProfile", fileName, customInfo, null);
 		}else {
 			logger.info("MS Profile 생성");
-			fileGenerator.runGenerator(nodes, domain, clusters, "msProfile", fileName, userPath, null);
+			fileGenerator.runGenerator(nodes, domain, clusters, "msProfile", fileName, customInfo, null);
 		}
 	}
 	
@@ -192,12 +205,13 @@ public class AppMain {
 		if(AppMain.dev) {
 			fileName = "devPath/domain_test.xml";
 		}else {
-			fileName = userPath.getAnylinkHome() + File.separator + "domains" + File.separator + userPath.getDoaminName() + File.separator + "config" + File.separator + "domain.xml";
+			fileName = customInfo.getAnylinkHome() + File.separator + "domains" + File.separator + customInfo.getDoaminName() + File.separator + "config" + File.separator + "domain.xml";
 		}
 		logger.info("Domain 과정 시작");
 		
-		if(adminServerName.equals(userPath.getHostName())) {
-			fileGenerator.runGenerator(nodes, domain, clusters, "domain", fileName, userPath, repository.get(0));
+		// DAS 서버쪽에만 domain.xml 생성
+		if(adminServerHostName.equals(customInfo.getHostName())) {
+			fileGenerator.runGenerator(nodes, domain, clusters, "domain", fileName, customInfo, repository.get(0));
 		}else {
 			logger.info("ms 서버는 domain.xml 설정을 진행 하지 않습니다.");
 		}
@@ -209,47 +223,55 @@ public class AppMain {
 		
 		logger.info("BizSystemConfig 과정 시작");
 		
-		for(int i = 0; i < domain.size(); i++) {
-			Domain ms = domain.get(i);
-			if(userPath.getHostName().equals(ms.getNode_name()) && !ms.getName().equals("adminServer")) {
+		for(Domain msServers : domain) {
+			
+			// 각 호스트에 설치될 ms만 BizSystem을 생성한다.
+			if(customInfo.getHostName().equals(msServers.getNode_name()) && !msServers.getName().equals("adminServer")) {
 				if(AppMain.dev) {
-					fileName = "devPath/bizConfigs" + i + ".xml";
+					fileName = "devPath/bizConfigs_" + msServers.getName() + ".xml";
 				}else {
-					fileName = userPath.getAnylinkHome() + File.separator + "domains" + File.separator + userPath.getDoaminName() + File.separator + "servers" + File.separator + ms.getName() + File.separator + "repository" + File.separator + "bizsystem" + File.separator + "bizsystem.config";
+					fileName = customInfo.getAnylinkHome() + File.separator + "domains" + File.separator + customInfo.getDoaminName() + File.separator + "servers" + File.separator + msServers.getName() + File.separator + "repository" + File.separator + "bizsystem" + File.separator + "bizsystem.config";
 				}
-				fileGenerator.runGenerator(nodes, domain, clusters, "bizConfig", fileName, userPath, null);
+				fileGenerator.runGenerator(nodes, domain, clusters, "bizSystem", fileName, customInfo, null);
 			}
 		}
 	}
 	
 	public void RepositoryBoot() {
-		if(!adminServerName.equals(userPath.getHostName())){
+		if(!adminServerHostName.equals(customInfo.getHostName())){
 			logger.info("ms서버는 RepositoryDB 스키마 생성을 하지 않습니다.");
 			return;
 		}
 		String srcPath = null, destPath = null;
+		
 		logger.info("RepositoryDB 스키마 생성 시작");
+		
+		// jdbc 이동할 경로 설정
 		if(AppMain.dev) {
-			srcPath = "datasource";
+			srcPath = "repository";
 			destPath = "devPath";
 		}else {
-			srcPath = "datasource";
-			destPath = userPath.getAnylinkHome() + File.separator + "lib" + File.separator + "datasource";
+			srcPath = "repository";
+			destPath = customInfo.getAnylinkHome() + File.separator + "lib" + File.separator + "datasource";
 		}
 		
+		// 스키마 생성
+		schemaGenerator.runGenerator(repository.get(0), srcPath, "create-anylink-*.sql");
+		// 기본 데이터 입력
+		schemaGenerator.runGenerator(repository.get(0), srcPath, "insert-anylink-dis-*.sql");
 		
-		schemaGenerator.runGenerator(repository.get(0));
 		
+		// jdbc 이동
 		switch(repository.get(0).getVendor().toLowerCase()) {
-		case "tibero":
-			fileMover.runFileMove(srcPath, destPath, "tibero*.jar");
-			break;
-		case "oracle":
-			fileMover.runFileMove(srcPath, destPath, "ojdbc*.jar");
-			break;
-		case "others":
-			fileMover.runFileMove(srcPath, destPath, "mariadb*.jar");
-			break;
+			case "tibero":
+				fileMover.runFileMove(srcPath, destPath, "tibero*.jar");
+				break;
+			case "oracle":
+				fileMover.runFileMove(srcPath, destPath, "ojdbc*.jar");
+				break;
+			case "others":
+				fileMover.runFileMove(srcPath, destPath, "mariadb*.jar");
+				break;
 		}
 	}
 	
@@ -261,8 +283,9 @@ public class AppMain {
 			destPath = "devPath";
 		}else {
 			srcPath = "patch";
-			destPath = userPath.getAnylinkHome() + File.separator + "domains" + File.separator + userPath.getDoaminName() + File.separator + "lib" + File.separator + "application";
+			destPath = customInfo.getAnylinkHome() + File.separator + "domains" + File.separator + customInfo.getDoaminName() + File.separator + "lib" + File.separator + "application";
 		}
+		// 애니링크 패치
 		fileMover.runFileMove(srcPath, destPath, "anylink-distribution*.jar");
 		
 		if(AppMain.dev) {
@@ -270,24 +293,35 @@ public class AppMain {
 			destPath = "devPath";
 		}else {
 			srcPath = "patch";
-			destPath = userPath.getAnylinkHome() + File.separator + "domains" + File.separator + userPath.getDoaminName() + File.separator + ".applications" + File.separator + "anylink-admin";
+			destPath = customInfo.getAnylinkHome() + File.separator + "domains" + File.separator + customInfo.getDoaminName() + File.separator + ".applications" + File.separator + "anylink-admin";
 		}
+		// 웹어드민 패치
 		fileMover.runFileMove(srcPath, destPath, "anylink-admin*.war");
+		
+		if(AppMain.dev) {
+			srcPath = "patch";
+			destPath = "devPath";
+		}else {
+			srcPath = "patch";
+			destPath = customInfo.getAnylinkHome() + File.separator + "lib" + File.separator + "jext";
+		}
+		// 제우스 패치
+		fileMover.runFileMove(srcPath, destPath, "jext_*.jar");
 	}
 	
 	public void DisConfigBoot() {
-		if(!adminServerName.equals(userPath.getHostName())){
+		if(!adminServerHostName.equals(customInfo.getHostName())){
 			logger.info("ms서버는 dis-config.xml 생성을 하지 않습니다.");
 			return;
 		}
 		String fileName = null;
 		
-		logger.info("dis-config 과정 시작");
+		logger.info("disConfig 과정 시작");
 		if(AppMain.dev) {
 			fileName = "devPath/dis-config.xml";
 		}else {
-			fileName = userPath.getAnylinkHome() + File.separator + "dis_config" + File.separator + "dis-config.xml";
+			fileName = customInfo.getAnylinkHome() + File.separator + "dis_config" + File.separator + "dis-config.xml";
 		}
-		fileGenerator.runGenerator(nodes, domain, clusters, "dis-config", fileName, userPath, repository.get(0));
+		fileGenerator.runGenerator(nodes, domain, clusters, "disConfig", fileName, customInfo, repository.get(0));
 	}
 }

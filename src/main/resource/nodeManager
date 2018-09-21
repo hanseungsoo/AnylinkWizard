@@ -1,5 +1,5 @@
 useNodeManager=true
-host={{ userPath.getHostName }}
+host={{ customInfo.getHostName }}
 port={{ node.getPort }}
 useSSLListener=false
 serverMonitoringPeriod=500
@@ -7,4 +7,4 @@ serverAutoRestart=true
 serverRestartTryCount=5
 serverRestartDurationTime=120000
 serverRetryRestart=false
-logFile={{ userPath.getLogHome }}/nodemanager/JeusNodeManager.log
+logFile={{ customInfo.getLogHome }}/nodemanager/JeusNodeManager.log

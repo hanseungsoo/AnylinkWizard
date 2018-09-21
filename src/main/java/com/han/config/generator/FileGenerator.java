@@ -26,161 +26,61 @@ import com.han.config.util.EncryptUtil;
 public class FileGenerator {
 	private static Logger logger = LoggerFactory.getLogger(FileGenerator.class);
 	
-	public void runGenerator(List<Node> nodeList,List<Domain> domainList, List<Clusters> clustersList, String key, String path, CustomInfo userPath, Repository repository) {
-		logger.info( key + " 파일 생성합니다.");
-		logger.info("파일 경로 : " + path);
+	public void runGenerator(List<Node> nodeList,List<Domain> domainList, List<Clusters> clustersList, String key, String path, CustomInfo customInfo, Repository repository) {
 		FileOutputStream fos = null;
 		JtwigModel model = null;
 		JtwigTemplate template = null;
-		File file = new File(path);
-		file.getParentFile().mkdirs();
 		boolean overWriteFlag = false;
+		
+		logger.info( key + " 파일 생성합니다.");
+		logger.info("파일 경로 : " + path);
+		
+		// 파일 생성
+		File file = new File(path);
+		// 경로 폴더 만들기
+		file.getParentFile().mkdirs();
+		
+		
 		if(key.equals("nodes")) {
 			
 			template = JtwigTemplate.classpathTemplate("nodes");
-			model = JtwigModel.newModel().with("nodeList" , nodeList);
+			model = nodeGenerator(nodeList);
 			
 		}else if(key.equals("dasProfile")) {
-			List<Listeners> msServerListeners = new ArrayList<Domain.Listeners>();
-			List<Domain> msList = new ArrayList<Domain>();
-			Node node = null;
-			Domain adminServer = null;
-			for(int i = 0; i < domainList.size(); i++) {
-				Domain item = (Domain) domainList.get(i);
-				if(item.getNode_name().equals(userPath.getHostName()) && !item.getName().equals("adminServer")) {
-					msList.add(item);
-					for(int j = 0; j< item.getListeners().size(); j++) {
-						if(item.getListeners().get(j).getName().equals("BASE")) {
-							msServerListeners.add(item.getListeners().get(j));
-						}
-					}
-				}
-				if(item.getName().equals("adminServer")) {
-					adminServer = item;
-				}
-			}
-			for(int i = 0; i < nodeList.size(); i++) {
-				Node tmpNode = nodeList.get(i);
-				if(tmpNode.getName().equals(userPath.getHostName())) {
-					node = tmpNode;
-					break;
-				}
-			}
+			
 			overWriteFlag = true;
 			template = JtwigTemplate.classpathTemplate("dasAlias");
-			model = JtwigModel.newModel().with("msServerList" , msList)
-										 .with("userPath", userPath)
-										 .with("msServerListeners", msServerListeners)
-										 .with("node", node)
-										 .with("adminServer", adminServer);
+			model = dasProfileGenerator(nodeList, domainList, customInfo);
+
 		}else if(key.equals("msProfile")) {
-			List<Listeners> msServerListeners = new ArrayList<Domain.Listeners>();
-			List<Domain> msList = new ArrayList<Domain>();
-			Node node = null;
-			Domain adminServer = null;
-			for(int i = 0; i < domainList.size(); i++) {
-				Domain item = (Domain) domainList.get(i);
-				if(item.getNode_name().equals(userPath.getHostName()) && !item.getName().equals("adminServer")) {
-					msList.add(item);
-					for(int j = 0; j< item.getListeners().size(); j++) {
-						if(item.getListeners().get(j).getName().equals("BASE")) {
-							msServerListeners.add(item.getListeners().get(j));
-						}
-					}
-				}
-				if(item.getName().equals("adminServer")) {
-					adminServer = item;
-				}
-			}
-			for(int i = 0; i < nodeList.size(); i++) {
-				Node tmpNode = nodeList.get(i);
-				if(tmpNode.getName().equals(userPath.getHostName())) {
-					node = tmpNode;
-					break;
-				}
-			}
+			
 			overWriteFlag = true;
 			template = JtwigTemplate.classpathTemplate("msAlias");
-			model = JtwigModel.newModel().with("msServerList" , msList)
-										 .with("userPath", userPath)
-										 .with("msServerListeners", msServerListeners)
-										 .with("node", node)
-										 .with("adminServer", adminServer);
+			model = msProfileGenerator(nodeList, domainList, customInfo);
+
 		}else if(key.equals("domain")) {
-//			Map adminMap = new HashMap<String, String>();
-//			adminMap.put("aa", "bb");'
-			Random rnd = new Random();
-			int n = 100000000 + rnd.nextInt(900000000);
-			Domain adminServer = (Domain)domainList.remove(0);
-			for(int i = 0; i < domainList.size(); i++) {
-				Domain item = (Domain) domainList.get(i);
-				for(int j = 0; j < clustersList.size(); j++) {
-					Clusters cluster = (Clusters) clustersList.get(j);
-					if(cluster.getServers().contains(item.getName())) {
-						item.setLifeCycle("false");
-					}else {
-						item.setLifeCycle("true");
-					}
-				}
-			}
 			
 			overWriteFlag = false;
 			template = JtwigTemplate.classpathTemplate("domain");
-			model = JtwigModel.newModel().with("adminServer" , adminServer)
-										 .with("msServerList", domainList)
-										 .with("userPath", userPath)
-										 .with("clustersList", clustersList)
-										 .with("dataSource", repository)
-										 .with("id", n);
-		}else if(key.equals("bizConfig")) {
-			String msName;
-			if(AppMain.dev) {
-				msName = "test";
-			}else {
-				String[] msNames = path.split(File.separator);
-				msName = msNames[msNames.length-4];
-			}
-			overWriteFlag = false;
-			template = JtwigTemplate.classpathTemplate("bizSystem");
-			model = JtwigModel.newModel().with("msName" , msName);
-		}else if(key.equals("nodeManager")) {
-			Node node = null;
-			for(int i = 0; i < nodeList.size(); i++) {
-				Node tmpNode = nodeList.get(i);
-				if(tmpNode.getName().equals(userPath.getHostName())) {
-					node = tmpNode;
-					break;
-				}
-			}
-			overWriteFlag = false;
-			template = JtwigTemplate.classpathTemplate("nodeManager");
-			model = JtwigModel.newModel().with("userPath" , userPath)
-										 .with("node", node);
-		}else if(key.equals("dis-config")) {
-			overWriteFlag = false;
-			String vendor = null;
-			String encrypt = null;
-			EncryptUtil encUtil = new EncryptUtil();
+			model = domainGenerator(domainList, clustersList, customInfo, repository);
+
+		}else if(key.equals("bizSystem")) {
 			
-			encrypt = encUtil.encode(userPath.getPassWord());
-			switch(repository.getVendor().toLowerCase()){
-				case "oracle" :
-					vendor = "oracle";
-					break;
-				case "tibero" :
-					vendor = "tibero";
-					break;
-				case "others" :
-					vendor = "maria";
-					break;
-			}
+			template = JtwigTemplate.classpathTemplate("bizSystem");
+			model = bizSystemGenerator(path);
+			
+		}else if(key.equals("nodeManager")) {
+			
+			template = JtwigTemplate.classpathTemplate("nodeManager");
+			model = nodeManagerGenerator(nodeList, customInfo);
+		
+		}else if(key.equals("disConfig")) {
+		
 			template = JtwigTemplate.classpathTemplate("dis_config");
-			model = JtwigModel.newModel().with("userPath" , userPath)
-										 .with("repository", repository)
-										 .with("vendor", vendor)
-										 .with("encodePasswd", encrypt);
+			model = disConfigGenerator(customInfo, repository);
 		}
 		
+		// 파일 생성 시작
 		try {
 			fos = new FileOutputStream(file, overWriteFlag);
 		} catch (FileNotFoundException e) {
@@ -191,5 +91,196 @@ public class FileGenerator {
 		template.render(model, fos);
 		
 		logger.info(key + " 파일 생성 완료");
+	}
+	
+	public JtwigModel nodeGenerator(List<Node> nodeList) {
+		JtwigModel model = null;
+		model = JtwigModel.newModel().with("nodeList" , nodeList);
+		
+		return model;
+	}
+	public JtwigModel dasProfileGenerator(List<Node> nodeList, List<Domain> domainList, CustomInfo customInfo) {
+		JtwigModel model = null;
+		String dasNodePort = null;
+		List<String> msBasePorts = new ArrayList<String>();
+		List<String> msNames = new ArrayList<String>();
+		Domain adminServer = null;
+		
+		for(Domain domainItem : domainList) {
+			
+			// adminServer 확인
+			if(domainItem.getName().equals("adminServer")) {
+				adminServer = domainItem;
+				continue;
+			}
+			
+			if(domainItem.getNode_name().equals(customInfo.getHostName()) && !domainItem.getName().equals("adminServer")) {
+				// DAS 서버의 MS 리스트
+				msNames.add(domainItem.getName());
+				
+				// MS BASE 포트 확인
+				for(Listeners listeners : domainItem.getListeners()) {
+					if(listeners.getName().equals("BASE")) {
+						msBasePorts.add(listeners.getPort());
+					}
+				}
+			}
+		}
+		
+		// NodeManager 리스트
+		for(Node node : nodeList) {
+			if(node.getName().equals(customInfo.getHostName())) {
+				dasNodePort = node.getPort();
+				break;
+			}
+		}
+		model = JtwigModel.newModel().with("msNames" , msNames)
+				 .with("customInfo", customInfo)
+				 .with("msBasePorts", msBasePorts)
+				 .with("dasNodePort", dasNodePort)
+				 .with("adminServer", adminServer);
+		
+		return model;
+	}
+	
+	public JtwigModel msProfileGenerator(List<Node> nodeList, List<Domain> domainList, CustomInfo customInfo) {
+		JtwigModel model = null;
+		String msNodePort = null;
+		List<String> msBasePorts = new ArrayList<String>();
+		List<String> msNames = new ArrayList<String>();
+		Domain adminServer = null;
+		
+		for(Domain domainItem : domainList) {
+			
+			// adminServer 확인
+			if(domainItem.getName().equals("adminServer")) {
+				adminServer = domainItem;
+				continue;
+			}
+			
+			if(domainItem.getNode_name().equals(customInfo.getHostName()) && !domainItem.getName().equals("adminServer")) {
+				// MS 서버의 MS 리스트
+				msNames.add(domainItem.getName());
+				
+				// MS BASE 포트 확인
+				for(Listeners listeners : domainItem.getListeners()) {
+					if(listeners.getName().equals("BASE")) {
+						msBasePorts.add(listeners.getPort());
+					}
+				}
+			}
+		}
+		
+		// NodeManager 리스트
+		for(Node node : nodeList) {
+			if(node.getName().equals(customInfo.getHostName())) {
+				msNodePort = node.getPort();
+				break;
+			}
+		}
+		
+		model = JtwigModel.newModel().with("msNames" , msNames)
+				 .with("customInfo", customInfo)
+				 .with("msBasePorts", msBasePorts)
+				 .with("msNodePort", msNodePort)
+				 .with("adminServer", adminServer);
+		return model;
+	}
+	
+	public JtwigModel domainGenerator(List<Domain> domainList, List<Clusters> clustersList, CustomInfo customInfo, Repository repository) {
+		JtwigModel model = null;
+		Random rnd = new Random();
+		Domain adminServer = null;
+		List<Domain> msServers = new ArrayList<Domain>();
+		// 도메인 ID 랜덤 생성
+		int n = 100000000 + rnd.nextInt(900000000);
+		
+		for(Domain domainItem : domainList) {
+			// adminServer 확인
+			if(domainItem.getName().equals("adminServer")) {
+				adminServer = domainItem;
+				continue;
+			}else {
+				msServers.add(domainItem);
+			}
+			
+			// MS서버가 클러스터인지 아닌지에 따라 라이프사이클 생성 여부 판별
+			for(Clusters cluster : clustersList) {
+				if(cluster.getServers().contains(domainItem.getName())) {
+					domainItem.setLifeCycle("false");
+				}else {
+					domainItem.setLifeCycle("true");
+				}
+			}
+		}
+		
+		model = JtwigModel.newModel().with("adminServer" , adminServer)
+				 .with("msServers", msServers)
+				 .with("customInfo", customInfo)
+				 .with("clustersList", clustersList)
+				 .with("repository", repository)
+				 .with("id", n);
+		
+		return model;
+	}
+	
+	public JtwigModel bizSystemGenerator(String path) {
+		JtwigModel model = null;
+		String msName = null;
+		
+		// 생성하려는 bizSystem의 ms이름을 추출
+		String[] msNames = path.split(File.separator);
+		msName = msNames[msNames.length-4];
+		
+		model = JtwigModel.newModel().with("msName" , msName);
+		
+		return model;
+	}
+	
+	public JtwigModel nodeManagerGenerator(List<Node> nodeList, CustomInfo customInfo) {
+		JtwigModel model = null;
+		
+		
+		// 호스트 이름이랑 같은 노드매니저 설정 추출
+		for(Node node: nodeList) {
+			if(node.getName().equals(customInfo.getHostName())) {
+				model = JtwigModel.newModel().with("customInfo" , customInfo)
+											 .with("node", node);
+				break;
+			}
+		}
+		
+		return model;
+	}
+	
+	public JtwigModel disConfigGenerator(CustomInfo customInfo, Repository repository) {
+		JtwigModel model = null;
+		
+		String vendor = null;
+		String encryptStr = null;
+		
+		// jeus 패스워드 입력을 위해 암호화 유틸 필요
+		EncryptUtil encUtil = new EncryptUtil();
+		encryptStr = encUtil.encode(customInfo.getPassWord());
+		
+		// 레파지토리 DB는 3가지 지원
+		switch(repository.getVendor().toLowerCase()){
+			case "oracle" :
+				vendor = "oracle";
+				break;
+			case "tibero" :
+				vendor = "tibero";
+				break;
+			case "others" :
+				vendor = "maria";
+				break;
+		}
+		
+		model = JtwigModel.newModel().with("customInfo" , customInfo)
+				 .with("repository", repository)
+				 .with("vendor", vendor)
+				 .with("encryptStr", encryptStr);
+		
+		return model;
 	}
 }
